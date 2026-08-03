@@ -1,0 +1,186 @@
+# Betat Community Framework — Build Blueprint
+
+> Status: seed · Authoritative build detail for [COMMUNITY_FRAMEWORK.md](../COMMUNITY_FRAMEWORK.md) v0.2
+>
+> **Authority hierarchy:** spec governs blueprint · blueprint governs TODOs · TODOs govern code.
+> A conflict is resolved upward (the higher document wins); the fix flows downward in the same commit.
+> When implementation discovers the blueprint is wrong, record it in the Decision Log **first**, then code.
+>
+> **Section numbers mirror the TODOs exactly.** Blueprint §NN ↔ [todos/NN](todos/). §0 is the whole-picture layer every session reads first.
+
+---
+
+## §0 — The Whole Picture (read first, every session)
+
+### Locked build decisions (§0 session)
+
+| # | Decision | Choice | Note |
+|---|----------|--------|------|
+| 1 | Environment / packaging | **plain venv + pip**; `pyproject.toml` defines the package | dev install: `pip install -e "./framework[dev]"` |
+| 2 | API layer | **Django REST Framework** | serializers, token auth, pagination, browsable API |
+| 3 | CLI | **thin `betat` console script → Django management commands** | zero extra dependency; every command also `manage.py <cmd>` |
+| 4 | App decomposition | **six apps** nested in `betat_community/` | one app ↔ one TODO section |
+| 5 | Python floor | **3.11**, tested through 3.12+ | 3.10 EOL ~Oct 2026; floor may rise by consensus |
+| 6 | Tests | **pytest + pytest-django** | dev-only; plain asserts, fixtures |
+
+### The tree — git root to a single app
+
+```
+betat-repo/                          ← git root · venv + pip here · public docs here
+├── .venv/                           ← environment (gitignored)
+├── README.md  *.md  _config.yml     ← manifesto + Jekyll site
+├── CNAME  index.md  
+│
+└── framework/                       ← THE PACKAGE (pip install -e ./framework)
+    ├── pyproject.toml               ← package name, deps, [dev] extra, `betat` entry point
+    ├── README.md                    ← package front door → points to BLUEPRINT.md
+    ├── BLUEPRINT.md                 ← this file
+    ├── CLAUDE.md                    ← session bootstrap
+    ├── TODO.md  todos/              ← build plan
+    ├── manage.py                    ← Django entry (dev/admin)
+    ├── tests/                       ← pytest suite, one module per app
+    │
+    └── betat_community/             ← THE DJANGO PROJECT (importable)
+        ├── __init__.py
+        ├── settings.py              ← DRF, INSTALLED_APPS, SQLite default
+        ├── urls.py                  ← mounts each app's routes
+        ├── wsgi.py / asgi.py
+        ├── cli.py                   ← `betat` dispatcher (§1)
+        ├── core/                    ← §01/§02 config + community identity
+        ├── store/                   ← §05 append-only provenance store
+        ├── communityauth/           ← §03 auth plugins + floor
+        ├── workflow/                ← §04 submit / review / accept
+        ├── federation/              ← §06 /betat/ public endpoints
+        └── bundledui/               ← §07 Django-template UI
+```
+
+Everything past the git-root level is authoritative here and nowhere else; `framework/README.md` only signposts to this section.
+
+### The API URL table (the mandatory contract)
+
+| Method | Path | Auth | App / section | Purpose |
+|--------|------|------|---------------|---------|
+| GET | `/betat/info` | none | federation §06 | community identity + declared standard |
+| GET | `/betat/records` | none | federation §06 | paginated records, newest first (`?hi_only=`) |
+| GET | `/betat/records/{id}` | none | federation §06 | one record |
+| GET | `/betat/changes?since=` | none | federation §06 | incremental feed for crawlers |
+| POST | `/betat/enroll` | none→identity | communityauth §03 | apply/enroll a Provenancier |
+| POST | `/betat/submit` | Provenancier token | workflow §04 | submit a contribution |
+| GET | `/betat/queue` | verifier | workflow §04 | pending review queue |
+| POST | `/betat/review/{id}` | verifier | workflow §04 | accept or reject → writes record on accept |
+
+Reading endpoints are public and unauthenticated — always. Writing endpoints require the stated role. The bundled UI consumes only this table; if the UI needs something the table lacks, the table is incomplete.
+
+### Data flow (one accepted contribution)
+
+```
+betat init → core writes CommunityConfig (id = FQDN, declared standard ≥ baseline)
+   │
+Provenancier → POST /enroll → communityauth (≥1 protocol-list method) → identity
+   │
+POST /submit → workflow: Submission(pending) — content_ref + hash only, never content
+   │
+GET /queue → verifier → POST /review/{id}
+   │
+   ├── reject → Submission(rejected), no record
+   └── accept → workflow builds record → store.append():
+                 canonicalize → SHA-256 record_id → INSERT (no update/delete path)
+   │
+GET /records, /records/{id}, /changes → federation serves them publicly
+   │
+crawler/index reads federation → renders per RENDERING.md (badge, standard, integrity states)
+```
+
+### Conventions (all sections obey)
+
+- **Naming:** apps lowercase single word; models `PascalCase`; DRF serializers `<Model>Serializer`; management commands the verb only (`init`, `runserver`, `check`, `announce`, `export`).
+- **Error shape:** every API error returns `{"error": {"code": "<machine_code>", "message": "<human text>"}}` with the right HTTP status. One shape everywhere.
+- **Settings:** one `settings.py`; environment overrides via env vars (`BETAT_DB`, `BETAT_SECRET_KEY`); SQLite default requires no env at all.
+- **Tests:** `framework/tests/test_<app>.py`; pytest, plain asserts; every acceptance-criterion line in a TODO maps to at least one test.
+- **Spec-permanent names never change:** `hi_tag`, `provenancier`, and the PROVENANCE_SPEC field names are fixed by the spec's versioning rules.
+- **Definition of done includes docs:** a public capability without a usage snippet is unfinished (COMMUNITY_FRAMEWORK.md, Documentation Standard).
+
+---
+
+## §1 — Project Scaffold & CLI
+
+**Owns:** `pyproject.toml`, `betat_community/settings.py`, `urls.py`, `cli.py`, `manage.py`, package skeleton.
+**Detail:** `pyproject.toml` declares name `betat-community`, Python `>=3.11`, deps `django>=5,<6`, `djangorestframework`; `[dev]` extra adds `pytest`, `pytest-django`. Console entry point `betat = "betat_community.cli:main"`. `cli.py` is a thin dispatcher: it parses the first token (`init`, `runserver`, `check`, `announce`, `export`) and delegates to the matching Django management command, so each is independently runnable as `python manage.py <cmd>`. `settings.py` installs DRF and the six apps; database defaults to SQLite at `BETAT_DB` or `./betat.sqlite3`.
+**Acceptance:** `pip install -e "./framework[dev]"` succeeds; `betat --help` lists commands; `pytest` runs (zero tests OK); `manage.py check` passes.
+
+## §2 — Config & Community Identity
+
+**Owns:** `core/` — `CommunityConfig` model, ID validation, `betat init` command.
+**Detail:** `CommunityConfig` fields per COMMUNITY_FRAMEWORK.md (id, name, domain, content_type, hi_standard, auth_methods, store_uri). ID validator: lowercase FQDN, syntactically valid, non-empty labels. `init` renders the baseline standard (`human-originated, community-verified`) and accepts strengthen-only additions; declares (does not verify) domain control; prints the readiness checklist and the "next steps / verification happens at the registry" note. Single-config-per-install for seed.
+**Acceptance:** `betat init` writes a valid config; a malformed ID is rejected with the standard error shape; baseline is present and can only be extended; `/betat/info` (once §06 exists) serves it.
+
+## §3 — Authentication Plugins & Floor
+
+**Owns:** `communityauth/` — `AuthMethod` base, three seed plugins, the floor enforcement, `/enroll`.
+**Detail:** `AuthMethod` protocol with `enroll()` / `authenticate()`. Seed plugins: `PeerVouchAuth`, `CryptoKeyAuth`, `InstitutionalAuth`. **Floor rule enforced in config load:** at least one method from the protocol list must be configured; a config with zero, or with a non-listed method, fails to start. Chosen method(s) recorded so every record can carry `provenancier.authentication_method`. Government-ID and behavioral attestation are roadmap stubs, not shipped.
+**Acceptance:** each seed plugin enrolls and authenticates in tests; a zero-method config is rejected at startup; a non-listed method is rejected; the method name propagates into a built record.
+
+## §4 — Submission & Verification Workflow
+
+**Owns:** `workflow/` — `Submission` model, `/submit`, `/queue`, `/review/{id}`, record building.
+**Detail:** `submit()` requires an authenticated identity and takes `content_ref` (URI/DOI/IPFS) + `content_hash` — never content itself; status `pending_review`. `review()` records verifier identity + timestamp; accept path calls `build_record()` then `store.append()`; reject path closes the submission with no record. `build_record()` composes a PROVENANCE_SPEC v0.1 record: declared standard into `declaration.custom_addition`, `hi_tag=true`, verification block filled.
+**Acceptance:** unauthenticated submit is refused; accept produces a spec-valid record in the store; reject produces none; verifier identity + timestamp appear in the record.
+
+## §5 — Append-Only Provenance Store
+
+**Owns:** `store/` — `ProvenanceRecord` model, `canonical.py`, `store.py`, guard-trigger migration.
+**Detail:** see [todos/05-provenance-store.md](todos/05-provenance-store.md) (the exemplar). Canonicalization: `record_id`/`record_signature` set to `""`, keys sorted, no whitespace, `json.dumps(..., sort_keys=True, separators=(",",":"))`; `record_id` = SHA-256, computed server-side always. `append/get/list/verify_integrity` only — no `update`/`delete` methods exist. SQLite `BEFORE UPDATE`/`BEFORE DELETE` triggers `RAISE(ABORT)` via migration (defense-in-depth, honestly weaker than role separation). Reject any record whose `hi_tag` is not `true`.
+**Acceptance:** record round-trips byte-identical; `verify_integrity` passes clean / fails on tamper; raw `UPDATE`/`DELETE` fails on SQLite; `hi_tag:false` rejected.
+
+## §6 — Federation Endpoints
+
+**Owns:** `federation/` — the four public GET endpoints, DRF serializers, pagination.
+**Detail:** `/betat/info` serves `CommunityConfig`; `/betat/records` paginated newest-first with `?hi_only=`; `/betat/records/{id}` one record; `/betat/changes?since=` incremental by timestamp. All public, unauthenticated, JSON, read-only. Serializers expose exactly the record schema — no internal fields leak.
+**Acceptance:** all four return valid JSON; a written record appears at `/records` and `/records/{id}`; `since=` filters correctly; no endpoint requires auth; acceptance-test step 7 (independent crawler) passes.
+
+## §7 — Bundled Minimal UI
+
+**Owns:** `bundledui/` — Django templates: enroll, submit, review queue, public records list + record detail.
+**Detail:** server-rendered Django templates, no build step, no Node. **Consumes the public JSON API only** — no ORM shortcuts. Renders per [RENDERING.md](RENDERING.md), and its **integrity-state rules are binding**: validate `record_id` (tampered state), render the three content-hash states honestly, always show the declared standard beside the HI badge, always link the full record, render absence as *unverified* (never "fake"/"machine-made").
+**Acceptance:** the four views work from a fresh install with zero frontend work; each view's data comes through the API; a tampered/changed/unreachable fixture renders its correct state; the evidence link resolves.
+
+## §8 — Post-Install Seed Website
+
+**Owns:** the first-run landing page + readiness checklist (in `bundledui/` or `core/`).
+**Detail:** Django-style first-run page listing the four readiness items (robust DB engine; provenance assertions/records; authentication method; UI bundle), each linking its docs page, each showing outstanding/done state. Not decorative — reflects real config state.
+**Acceptance:** fresh install shows the page with correct outstanding states; items link to docs; state updates as the operator completes each.
+
+## §9 — Discoverability: `announce` & `export`
+
+**Owns:** `betat announce` and `betat export` management commands.
+**Detail:** `announce` pings the registry/reference index ("new records — crawl me now"), optionally auto-run on accept. `export` produces a signed, integrity-verifiable dump submittable by any means when live crawling isn't practical. **No crawler ships in this package** — crawling is the index operator's job. Pull remains primary; these are the accessibility valve for intermittent hosts.
+**Acceptance:** `export` output validates (every `record_id` recomputes); `announce` posts the correct registry payload (mockable); neither introduces a crawler.
+
+## §10 — Acceptance Test (the seven steps)
+
+**Owns:** `tests/test_acceptance.py` — the end-to-end scenario from COMMUNITY_FRAMEWORK.md.
+**Detail:** scripts the seven steps (init+declare → enroll → submit → review/accept → valid record with hi_tag+standard → served & integrity-verified & unmodifiable → independent crawler reads it). Runs as soon as §06 exists, then re-runs after every section. This is the seed-release gate.
+**Acceptance:** all seven pass on a fresh SQLite install with zero frontend work.
+
+## §11 — Documentation Site
+
+**Owns:** the readthedocs-style docs (snippet per capability), per the Documentation Standard.
+**Detail:** every endpoint, function, and CLI command gets a copyable example with real output. Readiness-checklist items deep-link here. PR rule: public behavior change must update its docs page (definition of done).
+**Acceptance:** every §1–§9 public capability has a runnable snippet; the checklist links resolve into the docs.
+
+## §12 — Packaging & Production Guide
+
+**Owns:** final `pyproject.toml` polish, the "Recommended production stack" guide, PostgreSQL migration path.
+**Detail:** build/verify the installable package; write the PostgreSQL guide — install, configure, **role setup: app role INSERT/SELECT only, UPDATE/DELETE revoked** (the real append-only boundary), and the SQLite→PostgreSQL migration route. Document the 3.11 floor and 3.12+ testing.
+**Acceptance:** clean `pip install` from a built artifact works; the PostgreSQL guide runs end-to-end; append-only holds at the DB-permission level on PostgreSQL.
+
+---
+
+## Decision Log (append-only)
+
+- **2026-07 · §0 locked (six decisions):** venv+pip; DRF; thin-dispatcher CLI; six nested apps; Python 3.11 floor; pytest. Rationale: boring-majority + widest-pool accessibility + one-app-per-TODO alignment. Superseded 3.10 (EOL) as a floor candidate.
+- *(future deviations append here — record before coding the change)*
+
+---
+
+*Build plan: [TODO.md](TODO.md) · Session bootstrap: [CLAUDE.md](CLAUDE.md) · Spec: [COMMUNITY_FRAMEWORK.md](../COMMUNITY_FRAMEWORK.md)*

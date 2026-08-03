@@ -1,0 +1,55 @@
+# ── Python / Django (seed stack backend) ──
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+*.sqlite3
+db.sqlite3
+local_settings.py
+media/
+staticfiles/
+celerybeat-schedule
+celerybeat.pid
+
+# ── Secrets and environment — never commit ──
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# ── Node / React (frontend & extension) ──
+node_modules/
+.npm/
+dist/
+build/
+.cache/
+coverage/
+*.tsbuildinfo
+
+# ── Browser extension packaging ──
+*.crx
+*.xpi
+*.zip
+web-ext-artifacts/
+
+# ── Editors and IDEs ──
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Operating system noise ──
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Logs ──
+*.log
+logs/

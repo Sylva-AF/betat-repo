@@ -1,0 +1,11 @@
+title: Betat
+description: The human record, for the other person. An open framework for preserving the provenance of human-originated content.
+url: https://betat.org
+remote_theme: just-the-docs/just-the-docs
+plugins:
+  - jekyll-remote-theme
+aux_links:
+  "Betat on GitHub":
+    - "https://github.com/Sylva-AF/betat-repo"
+footer_content: "Betat. The human record, for the other person. Released under the MIT License."
+exclude: ["framework/", "*.zip"]

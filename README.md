@@ -1,6 +1,3 @@
-# betat-repo
-An open framework for preserving verified human-originated knowledge in the age of AI.
-
 # Betat
 
 > *"Betat" — from the Bamileke language of the Bantu people, Cameroon.*
@@ -102,7 +99,7 @@ Self-organized groups of human beings, each governing a domain of knowledge or e
 An append-only, open-format record of every verified HI contribution. Independently hostable. Content-addressed. Permanent.
 
 ### Layer 3 — Index and Tag Layer
-A unified open index across all provenance stores, queryable without registration. The UI layer built on this index renders content with visible HI or unverified tags — tagging what it displays based on provenance records, without hosting the content itself. The strategy for tagging existing web content at scale is an open problem, presented honestly and offered to Contributors to improve.
+An open index layer across all provenance stores, queryable without registration. Because every community publishes its records via open protocols, anyone can crawl them and build an index — betat main runs a reference index as a public convenience: *an* index, never *the* index. The UI layer built on this index renders content with visible HI or unverified tags — tagging what it displays based on provenance records, without hosting the content itself. The strategy for tagging existing web content at scale is an open problem, presented honestly and offered to Contributors to improve.
 
 ---
 
@@ -147,7 +144,7 @@ Betat is a seed. It is not a finished system.
 What it needs to grow:
 
 - **Archivists and librarians** who understand provenance and can improve the specification
-- **Contributors** who can implement the three layers — independently or together
+- **Contributors** who can implement the protocols and reference pieces — independently or together
 - **Browser extension Contributors** who can build the first HI/unverified tagging UI
 - **Community organizers** who want to seed the first Provenancier communities
 - **Identity and verification specialists** who can improve the Provenancier authentication model
@@ -178,7 +175,10 @@ This project is released under the [MIT License](LICENSE) — free to use, free 
 
 ## Get Involved
 
+- Read [WHAT_IS_BETAT.md](WHAT_IS_BETAT.md) for the full plain-language explanation
+- Read [WHY_BETAT.md](WHY_BETAT.md) for the philosophy underneath every decision
 - Read [ARCHITECTURE.md](ARCHITECTURE.md) if you want to build
+- Read [COMMUNITY_FRAMEWORK.md](COMMUNITY_FRAMEWORK.md) if you want to run a community
 - Read [PROVENANCE_SPEC.md](PROVENANCE_SPEC.md) if you want to implement
 - Open an issue if you want to discuss
 - Fork and submit a pull request if you want to contribute code
