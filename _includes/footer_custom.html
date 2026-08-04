@@ -1,0 +1,26 @@
+{%- comment -%}
+  Betat — page comments via giscus (stored as GitHub Discussions).
+  This is Just the Docs' supported custom footer slot; it appears at the
+  bottom of every page's main content. Disable on any page by adding
+  `comments: false` to that page's front matter.
+{%- endcomment -%}
+{% if page.comments != false %}
+<div class="giscus-comments" style="margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid #e0ddd4;">
+  <h3 style="font-size:1.05rem; margin-bottom:1rem;">Comments &amp; ideas</h3>
+  <script src="https://giscus.app/client.js"
+          data-repo="Sylva-AF/betat-repo"
+          data-repo-id="R_kgDOTOwaCQ"
+          data-category="Comments"
+          data-category-id="DIC_kwDOTOwaCc4DCng8"
+          data-mapping="pathname"
+          data-strict="0"
+          data-reactions-enabled="1"
+          data-emit-metadata="0"
+          data-input-position="bottom"
+          data-theme="light"
+          data-lang="en"
+          crossorigin="anonymous"
+          async>
+  </script>
+</div>
+{% endif %}
