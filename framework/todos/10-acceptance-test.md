@@ -17,9 +17,11 @@ The end-to-end gate. When these seven steps pass on a fresh SQLite install with 
   5. valid PROVENANCE_SPEC v0.1 record with `hi_tag:true` + declared standard in store
   6. `/betat/records` returns it; `verify_integrity` passes; no path modifies/deletes it
   7. an independent crawler, given only the host address, discovers + reads it
+- [ ] Parametrize the suite (or provide a second run) so it executes under both BETAT_DB settings: SQLite and PostgreSQL
 
 ## Acceptance criteria
 - [ ] all seven pass on a fresh SQLite install
+- [ ] all seven ALSO pass against PostgreSQL (set BETAT_DB to the postgres URL) — the dual-DB ship promise: the same suite green on both engines, with append-only holding via triggers on SQLite and via role revocation on PostgreSQL
 - [ ] zero frontend work required to pass
 - [ ] the test is the CI gate for a seed release
 

@@ -29,13 +29,12 @@
 betat-repo/                          ← git root · venv + pip here · public docs here
 ├── .venv/                           ← environment (gitignored)
 ├── README.md  *.md  _config.yml     ← manifesto + Jekyll site
-├── CNAME  index.md  
+├── CNAME  index.md  BLUEPRINT? (no — blueprint lives under framework/)
 │
 └── framework/                       ← THE PACKAGE (pip install -e ./framework)
     ├── pyproject.toml               ← package name, deps, [dev] extra, `betat` entry point
     ├── README.md                    ← package front door → points to BLUEPRINT.md
     ├── BLUEPRINT.md                 ← this file
-    ├── CLAUDE.md                    ← session bootstrap
     ├── TODO.md  todos/              ← build plan
     ├── manage.py                    ← Django entry (dev/admin)
     ├── tests/                       ← pytest suite, one module per app
@@ -99,6 +98,7 @@ crawler/index reads federation → renders per RENDERING.md (badge, standard, in
 - **Tests:** `framework/tests/test_<app>.py`; pytest, plain asserts; every acceptance-criterion line in a TODO maps to at least one test.
 - **Spec-permanent names never change:** `hi_tag`, `provenancier`, and the PROVENANCE_SPEC field names are fixed by the spec's versioning rules.
 - **Definition of done includes docs:** a public capability without a usage snippet is unfinished (COMMUNITY_FRAMEWORK.md, Documentation Standard).
+- **Database-agnostic by construction (dual-DB ship promise).** The framework must run identically on SQLite (seed/default) and PostgreSQL (production) with no change beyond database settings — an end user goes to production by pointing settings at PostgreSQL, nothing more. Use the Django ORM and migrations everywhere; do NOT write engine-specific SQL. The ONE sanctioned exception is the append-only enforcement seam, where the mechanism legitimately differs by engine: SQLite guard triggers vs PostgreSQL role-permission revocation. Engine-specific code anywhere outside that seam is a defect against the ship promise. The founder verifies the store and acceptance suites pass on BOTH engines before shipping.
 
 ---
 
@@ -179,6 +179,7 @@ crawler/index reads federation → renders per RENDERING.md (badge, standard, in
 ## Decision Log (append-only)
 
 - **2026-07 · §0 locked (six decisions):** venv+pip; DRF; thin-dispatcher CLI; six nested apps; Python 3.11 floor; pytest. Rationale: boring-majority + widest-pool accessibility + one-app-per-TODO alignment. Superseded 3.10 (EOL) as a floor candidate.
+- **2026-08 · dual-database ship promise:** framework must pass store + acceptance suites on both SQLite (seed default) and PostgreSQL (production) before shipping; end users go to production by switching database settings only. Database-agnostic via ORM; sole engine-specific seam is append-only enforcement (SQLite triggers / PostgreSQL role revocation). Amended BLUEPRINT §0 conventions, TODO 10, TODO 12.
 - *(future deviations append here — record before coding the change)*
 
 ---

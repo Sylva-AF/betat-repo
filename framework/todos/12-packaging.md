@@ -16,6 +16,8 @@ Ship the single installable package, and document the honest path from SQLite (e
 
 ## Acceptance criteria
 - [ ] clean install from built artifact works
+- [ ] SHIP GATE: acceptance suite (TODO 10) and store suite (TODO 05) pass on BOTH SQLite and PostgreSQL — this is the founder's dual-DB verification before shipping
+- [ ] the ONLY production step documented for end users is: point database settings at PostgreSQL and deploy (no code changes, no Postgres wrestling at production time)
 - [ ] production guide runs end-to-end
 - [ ] on PostgreSQL, raw UPDATE/DELETE by the app role fails at the DB-permission level
 

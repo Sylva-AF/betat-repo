@@ -33,6 +33,21 @@ build/
 coverage/
 *.tsbuildinfo
 
+## Dev-only docs
+Notes
+docs
+todo*
+TODO*
+blueprints
+commands
+
+
+## Calude
+.claude/
+CLAUDE.md
+.claude.json
+
+
 # ── Browser extension packaging ──
 *.crx
 *.xpi

@@ -1,14 +1,5 @@
 # Betat
 
-> *"Betat" — from the Bamileke language of the Bantu people, Cameroon.*
-> *It means "the other person" — or humanhood.*
->
-> *In English, TAT also means Turn Around Time — the time between a question and its answer.*
->
-> *We are building this for the other person: someone we will never meet, in a future we cannot fully imagine, who deserves to know what human beings actually knew, created, and experienced — without waiting.*
-
----
-
 ## Terminology
 
 Two roles exist in Betat. They are distinct and must never be confused:
@@ -36,6 +27,15 @@ Human beings are slow, individual, and irreplaceable — and that is precisely w
 An antique is not valuable because it looks better than a modern reproduction. It is valuable because of what it provably is: made by a specific human being, at a specific moment in time, under specific conditions. That chain of origin — its provenance — is the thing no reproduction can carry.
 
 Betat exists to build that chain for human knowledge, before the window closes.
+
+---
+
+> *"Betat" — from the Bamileke language of the Bantu people, Cameroon.*
+> *It means "the other person" — or humanhood.*
+>
+> *In English, TAT also means Turn Around Time — the time between a question and its answer.*
+>
+> *We are building this for the other person: someone we will never meet, in a future we cannot fully imagine, who deserves to know what human beings actually knew, created, and experienced — without waiting.*
 
 ---
 

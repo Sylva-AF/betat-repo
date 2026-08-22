@@ -1,0 +1,40 @@
+# pyproject.toml — packaging + tooling config for the Betat community framework.
+# Defines the installable package (betat-community), its dependencies, the `betat`
+# CLI entry point, and pytest configuration. Install for development from the repo
+# root with:  pip install -e "./framework[dev]"
+# See framework/BLUEPRINT.md §1 for how this fits the scaffold.
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "betat-community"
+version = "0.1.0"
+description = "Reference community framework for Betat — provenance of human-originated content."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Ateafac Forsong" },
+]
+dependencies = [
+    "django>=5,<6",
+    "djangorestframework",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-django",
+]
+
+[project.scripts]
+betat = "betat_community.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["betat_community*"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "betat_community.settings"
+python_files = ["test_*.py"]

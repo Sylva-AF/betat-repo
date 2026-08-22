@@ -35,6 +35,7 @@ The permanent record layer: a store that accepts valid PROVENANCE_SPEC v0.1 reco
 - The hash is computed server-side, always — a caller-supplied `record_id` is an attack surface
 - Canonicalization must be deterministic across Python versions (use `json.dumps(..., sort_keys=True, separators=(",",":"))`)
 - Triggers are defense-in-depth, not the security boundary; the spec's honest position (app-level + triggers on SQLite, role revocation on PostgreSQL) is documented in COMMUNITY_FRAMEWORK.md and must not be overstated in docs
+- **Dual-DB seam (per BLUEPRINT §0):** this is the ONE place engine-specific code is sanctioned. The store's behavior (append, read, verify, no-update/delete) must test identically on SQLite and PostgreSQL, even though enforcement differs (triggers vs role revocation). Keep everything else ORM-based so the store is engine-agnostic outside this seam.
 
 ## Out of scope for this section
 
