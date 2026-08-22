@@ -95,7 +95,7 @@ WSGI_APPLICATION = 'betat_community.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.environ.get('BETAT_DB', str(BASE_DIR / 'betat.sqlite3')),
+        'NAME': os.environ.get('BETAT_DB') or str(BASE_DIR / 'betat.sqlite3'),
     }
 }
 
