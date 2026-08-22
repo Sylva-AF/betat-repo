@@ -45,12 +45,19 @@ betat-repo/                          ← git root · venv + pip here · public d
         ├── urls.py                  ← mounts each app's routes
         ├── wsgi.py / asgi.py
         ├── cli.py                   ← `betat` dispatcher (§1)
+        ├── common/                  ← cross-app shared code (plain package, NO models)
+        │   ├── permissions.py       ← public-read / authenticated-write split
+        │   ├── serializers.py       ← shared provenance record serializer base
+        │   ├── errors.py            ← the standard error shape
+        │   └── hashing.py           ← canonicalization (shared with store)
         ├── core/                    ← §01/§02 config + community identity
         ├── store/                   ← §05 append-only provenance store
         ├── communityauth/           ← §03 auth plugins + floor
         ├── workflow/                ← §04 submit / review / accept
         ├── federation/              ← §06 /betat/ public endpoints
         └── bundledui/               ← §07 Django-template UI
+
+    each app: models.py + apps.py + migrations/ + api/{views,serializers,mixins}.py
 ```
 
 Everything past the git-root level is authoritative here and nowhere else; `framework/README.md` only signposts to this section.
@@ -98,6 +105,7 @@ crawler/index reads federation → renders per RENDERING.md (badge, standard, in
 - **Tests:** `framework/tests/test_<app>.py`; pytest, plain asserts; every acceptance-criterion line in a TODO maps to at least one test.
 - **Spec-permanent names never change:** `hi_tag`, `provenancier`, and the PROVENANCE_SPEC field names are fixed by the spec's versioning rules.
 - **Definition of done includes docs:** a public capability without a usage snippet is unfinished (COMMUNITY_FRAMEWORK.md, Documentation Standard).
+- **API layer structure (per-app `api/` + project `common/`).** Each app separates its API layer into an `api/` sub-package (`<app>/api/views.py`, `serializers.py`, `mixins.py`) rather than app-root `views.py`/`serializers.py` — keeping the data layer (`models.py`) and API layer distinct as they grow, while preserving one-app-per-section alignment (a session on §NN still works inside one app folder). Cross-app shared code lives in a project-level `betat_community/common/` package: `permissions.py` (public-read / authenticated-write split), `serializers.py` (shared provenance record serializer base), `errors.py` (the standard error shape), `hashing.py` (canonicalization, shared with `store`). Rule of thumb: used by one app → that app's `api/`; used by two or more → `common/`. **Never import from another app's `api/`;** shared needs go through `common/`. `common/` and every `api/` are plain Python packages — no `apps.py`, not in `INSTALLED_APPS`, and (critically) `common/` holds **no models**. Data-shaped cross-cutting needs that require models get their own purpose-named app when they arise (e.g. a future `registry` or `attestation` app), never a catch-all `common` app and never speculatively pre-built — this is a deliberate departure from platform patterns (e.g. an events/media `common` app) that do not fit Betat, since Betat never hosts content and never tracks readers.
 - **Database-agnostic by construction (dual-DB ship promise).** The framework must run identically on SQLite (seed/default) and PostgreSQL (production) with no change beyond database settings — an end user goes to production by pointing settings at PostgreSQL, nothing more. Use the Django ORM and migrations everywhere; do NOT write engine-specific SQL. The ONE sanctioned exception is the append-only enforcement seam, where the mechanism legitimately differs by engine: SQLite guard triggers vs PostgreSQL role-permission revocation. Engine-specific code anywhere outside that seam is a defect against the ship promise. The founder verifies the store and acceptance suites pass on BOTH engines before shipping.
 
 ---
@@ -122,25 +130,25 @@ crawler/index reads federation → renders per RENDERING.md (badge, standard, in
 
 ## §4 — Submission & Verification Workflow
 
-**Owns:** `workflow/` — `Submission` model, `/submit`, `/queue`, `/review/{id}`, record building.
+**Owns:** `workflow/` — `Submission` model, `/submit`, `/queue`, `/review/{id}`, record building. API code in `workflow/api/`; the record serializer base and canonicalization come from `common/` (shared with store/federation).
 **Detail:** `submit()` requires an authenticated identity and takes `content_ref` (URI/DOI/IPFS) + `content_hash` — never content itself; status `pending_review`. `review()` records verifier identity + timestamp; accept path calls `build_record()` then `store.append()`; reject path closes the submission with no record. `build_record()` composes a PROVENANCE_SPEC v0.1 record: declared standard into `declaration.custom_addition`, `hi_tag=true`, verification block filled.
 **Acceptance:** unauthenticated submit is refused; accept produces a spec-valid record in the store; reject produces none; verifier identity + timestamp appear in the record.
 
 ## §5 — Append-Only Provenance Store
 
-**Owns:** `store/` — `ProvenanceRecord` model, `canonical.py`, `store.py`, guard-trigger migration.
-**Detail:** see [todos/05-provenance-store.md](todos/05-provenance-store.md) (the exemplar). Canonicalization: `record_id`/`record_signature` set to `""`, keys sorted, no whitespace, `json.dumps(..., sort_keys=True, separators=(",",":"))`; `record_id` = SHA-256, computed server-side always. `append/get/list/verify_integrity` only — no `update`/`delete` methods exist. SQLite `BEFORE UPDATE`/`BEFORE DELETE` triggers `RAISE(ABORT)` via migration (defense-in-depth, honestly weaker than role separation). Reject any record whose `hi_tag` is not `true`.
+**Owns:** `store/` — `ProvenanceRecord` model, `store.py`, guard-trigger migration. Canonicalization lives in `betat_community/common/hashing.py`, not `store/` — it's shared with federation (record_id validation on read) and workflow (record building), per the §0 Decision Log "API structure" entry.
+**Detail:** see [todos/05-provenance-store.md](todos/05-provenance-store.md) (the exemplar). Canonicalization (`common/hashing.py`): `record_id`/`record_signature` set to `""`, keys sorted, no whitespace, `json.dumps(..., sort_keys=True, separators=(",",":"))`; `record_id` = SHA-256, computed server-side always. `append/get/list_records/verify_integrity` only — no `update`/`delete` methods exist. SQLite `BEFORE UPDATE`/`BEFORE DELETE` triggers `RAISE(ABORT)` via migration (defense-in-depth, honestly weaker than role separation). Reject any record whose `hi_tag` is not `true`.
 **Acceptance:** record round-trips byte-identical; `verify_integrity` passes clean / fails on tamper; raw `UPDATE`/`DELETE` fails on SQLite; `hi_tag:false` rejected.
 
 ## §6 — Federation Endpoints
 
-**Owns:** `federation/` — the four public GET endpoints, DRF serializers, pagination.
+**Owns:** `federation/` — the four public GET endpoints, DRF serializers, pagination. API code in `federation/api/`; record serializer base from `common/serializers.py`, the public-read permission from `common/permissions.py`.
 **Detail:** `/betat/info` serves `CommunityConfig`; `/betat/records` paginated newest-first with `?hi_only=`; `/betat/records/{id}` one record; `/betat/changes?since=` incremental by timestamp. All public, unauthenticated, JSON, read-only. Serializers expose exactly the record schema — no internal fields leak.
 **Acceptance:** all four return valid JSON; a written record appears at `/records` and `/records/{id}`; `since=` filters correctly; no endpoint requires auth; acceptance-test step 7 (independent crawler) passes.
 
 ## §7 — Bundled Minimal UI
 
-**Owns:** `bundledui/` — Django templates: enroll, submit, review queue, public records list + record detail.
+**Owns:** `bundledui/` — Django templates: enroll, submit, review queue, public records list + record detail. (Templates + views live in `bundledui/`; it consumes the public API only. Its `api/` folder is unused unless it exposes endpoints — UI templates are not the API layer.)
 **Detail:** server-rendered Django templates, no build step, no Node. **Consumes the public JSON API only** — no ORM shortcuts. Renders per [RENDERING.md](RENDERING.md), and its **integrity-state rules are binding**: validate `record_id` (tampered state), render the three content-hash states honestly, always show the declared standard beside the HI badge, always link the full record, render absence as *unverified* (never "fake"/"machine-made").
 **Acceptance:** the four views work from a fresh install with zero frontend work; each view's data comes through the API; a tampered/changed/unreachable fixture renders its correct state; the evidence link resolves.
 
@@ -179,6 +187,7 @@ crawler/index reads federation → renders per RENDERING.md (badge, standard, in
 ## Decision Log (append-only)
 
 - **2026-07 · §0 locked (six decisions):** venv+pip; DRF; thin-dispatcher CLI; six nested apps; Python 3.11 floor; pytest. Rationale: boring-majority + widest-pool accessibility + one-app-per-TODO alignment. Superseded 3.10 (EOL) as a floor candidate.
+- **2026-08 · API structure (per-app `api/` + project `common/`):** adopted while views were still empty (only models built in §1–§5), the cheapest moment. Each app gets `api/{views,serializers,mixins}.py`; cross-app behavioral utilities (permissions, shared serializers, error shape, canonicalization) live in `betat_community/common/` — a plain package with NO models, NOT in INSTALLED_APPS. Applied going forward from §6; §1–§5 (models-only, minimal API code) migrate lazily when touched. No cross-app `api/` imports; shared needs go through `common/`. Future data-shaped shared needs get purpose-named apps (`registry`, `attestation`), never a catch-all `common` app — a deliberate non-adoption of the events/media `common`-as-app pattern, which conflicts with Betat's never-host-content and never-track-readers principles. Amended §0 tree + conventions.
 - **2026-08 · dual-database ship promise:** framework must pass store + acceptance suites on both SQLite (seed default) and PostgreSQL (production) before shipping; end users go to production by switching database settings only. Database-agnostic via ORM; sole engine-specific seam is append-only enforcement (SQLite triggers / PostgreSQL role revocation). Amended BLUEPRINT §0 conventions, TODO 10, TODO 12.
 - *(future deviations append here — record before coding the change)*
 
