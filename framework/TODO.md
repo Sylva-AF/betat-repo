@@ -7,7 +7,7 @@
 
 | # | Section | TODO file | Spec reference | Status |
 |---|---------|-----------|----------------|--------|
-| 01 | Project scaffold & CLI | [todos/01-scaffold-cli.md](todos/01-scaffold-cli.md) | What an Operator Gets | not started |
+| 01 | Project scaffold & CLI | [todos/01-scaffold-cli.md](todos/01-scaffold-cli.md) | What an Operator Gets | done |
 | 02 | Config & community identity | [todos/02-config-identity.md](todos/02-config-identity.md) | Community Identity; CommunityConfig | not started |
 | 03 | Authentication plugins & floor | [todos/03-authentication.md](todos/03-authentication.md) | Authentication (pluggable, floored) | not started |
 | 04 | Submission & verification workflow | [todos/04-workflow.md](todos/04-workflow.md) | Submission and verification workflow | not started |

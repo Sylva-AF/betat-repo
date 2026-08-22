@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +23,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3bx3ny^00-=-0lpac%@chtl_1u%w8fv(y=0w7$ap8vc&2nc_&2'
+DEBUG = os.environ.get('BETAT_DEBUG', 'true').lower() in ('1', 'true', 'yes')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = os.environ.get('BETAT_SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        # Dev-only fallback — never used when DEBUG is False, so it can be
+        # committed safely. Production installs must set BETAT_SECRET_KEY.
+        SECRET_KEY = 'django-insecure-3bx3ny^00-=-0lpac%@chtl_1u%w8fv(y=0w7$ap8vc&2nc_&2'
+    else:
+        raise ImproperlyConfigured(
+            'BETAT_SECRET_KEY must be set in the environment when BETAT_DEBUG is false.'
+        )
 
 ALLOWED_HOSTS = []
 
@@ -37,8 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-     # third-party
-     'rest_framework',
+    # third-party
+    'rest_framework',
     # betat apps
     'betat_community.core',
     'betat_community.store',
@@ -84,7 +95,7 @@ WSGI_APPLICATION = 'betat_community.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.environ.get('BETAT_DB', str(BASE_DIR / 'betat.sqlite3')),
     }
 }
 
