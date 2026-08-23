@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 
 from betat_community.communityauth.api.views import EnrollView
+from betat_community.federation.api.views import ChangesView, InfoView, RecordDetailView, RecordsView
 from betat_community.workflow.api.views import QueueView, ReviewView, SubmitView
 
 urlpatterns = [
@@ -26,4 +27,8 @@ urlpatterns = [
     path('betat/submit', SubmitView.as_view(), name='betat-submit'),
     path('betat/queue', QueueView.as_view(), name='betat-queue'),
     path('betat/review/<int:submission_id>', ReviewView.as_view(), name='betat-review'),
+    path('betat/info', InfoView.as_view(), name='betat-info'),
+    path('betat/records', RecordsView.as_view(), name='betat-records'),
+    path('betat/records/<str:record_id>', RecordDetailView.as_view(), name='betat-record-detail'),
+    path('betat/changes', ChangesView.as_view(), name='betat-changes'),
 ]

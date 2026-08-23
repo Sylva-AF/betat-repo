@@ -12,7 +12,7 @@
 | 03 | Authentication plugins & floor | [todos/03-authentication.md](todos/03-authentication.md) | Authentication (pluggable, floored) | done |
 | 04 | Submission & verification workflow | [todos/04-workflow.md](todos/04-workflow.md) | Submission and verification workflow | done |
 | 05 | Append-only provenance store | [todos/05-provenance-store.md](todos/05-provenance-store.md) | Append-only store; PROVENANCE_SPEC | done |
-| 06 | Federation endpoints | [todos/06-federation.md](todos/06-federation.md) | Federation endpoints | not started |
+| 06 | Federation endpoints | [todos/06-federation.md](todos/06-federation.md) | Federation endpoints | done |
 | 07 | Bundled minimal UI | [todos/07-bundled-ui.md](todos/07-bundled-ui.md) | Consumption Model, Layer 2 | not started |
 | 08 | Post-install seed website | [todos/08-seed-website.md](todos/08-seed-website.md) | The post-install seed website | not started |
 | 09 | Discoverability: announce & export | [todos/09-discoverability.md](todos/09-discoverability.md) | announce / export | not started |
