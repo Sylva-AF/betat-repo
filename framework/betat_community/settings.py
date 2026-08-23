@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # third-party
     'rest_framework',
+    'rest_framework.authtoken',
     # betat apps
     'betat_community.core',
     'betat_community.store',
@@ -140,3 +141,17 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Django REST Framework
+# Reading endpoints are always public (BLUEPRINT §0); writing endpoints
+# require a Provenancier/verifier token — issued via rest_framework.authtoken
+# at successful communityauth enrollment (§03). "No custom crypto" for token
+# issuance (todos/03-authentication.md) — this is DRF's standard mechanism.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}

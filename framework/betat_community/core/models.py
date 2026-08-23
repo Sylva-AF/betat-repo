@@ -6,6 +6,7 @@ Field-level source of truth: COMMUNITY_FRAMEWORK.md "Community Identity" /
 import re
 
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 
 BASELINE_HI_STANDARD = "human-originated, community-verified"
@@ -52,7 +53,11 @@ def validate_auth_methods(value):
             code="invalid_auth_methods",
         )
     # Membership against the protocol list is the "floor rule enforced in
-    # config load" — owned by communityauth (§03, BLUEPRINT §3), not here.
+    # config load" (§03, BLUEPRINT §3) — imported lazily to avoid a
+    # module-load-order dependency between the two apps' models.py.
+    from betat_community.communityauth.floor import validate_floor
+
+    validate_floor(value)
 
 
 class CommunityConfig(models.Model):
@@ -66,6 +71,20 @@ class CommunityConfig(models.Model):
     hi_standard = models.TextField(default=BASELINE_HI_STANDARD)
     auth_methods = models.JSONField(validators=[validate_auth_methods])
     store_uri = models.CharField(max_length=500)
+
+    # communityauth (§03) config — kept here since CommunityConfig is the
+    # single per-install config object; see BLUEPRINT §3 Decision Log.
+    peer_vouch_threshold = models.IntegerField(
+        default=2,
+        validators=[MinValueValidator(2)],
+        help_text="Minimum vouchers PeerVouchAuth requires. Default 2 (BLUEPRINT §3 "
+                   "Decision Log); communities may raise it, never lower it.",
+    )
+    trusted_institutions = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="InstitutionalAuth's trust table: {institution_id: public_key_hex}.",
+    )
 
     def clean(self):
         super().clean()

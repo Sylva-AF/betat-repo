@@ -14,7 +14,7 @@ def _init(**overrides):
         domain="marine biology",
         content_type="scientific_observation",
         store_uri="https://example.org/records",
-        auth_methods=["peer_vouch"],
+        auth_methods=["community_peer_vouching"],
     )
     kwargs.update(overrides)
     call_command("init", **kwargs)
@@ -24,7 +24,7 @@ def test_init_writes_valid_config():
     _init()
     config = CommunityConfig.objects.get(id="example.org")
     assert config.hi_standard == BASELINE_HI_STANDARD
-    assert config.auth_methods == ["peer_vouch"]
+    assert config.auth_methods == ["community_peer_vouching"]
 
 
 def test_malformed_fqdn_rejected():
@@ -52,7 +52,7 @@ def test_model_rejects_hi_standard_that_drops_baseline():
         domain="marine biology",
         content_type="scientific_observation",
         hi_standard="a made-up weaker standard",
-        auth_methods=["peer_vouch"],
+        auth_methods=["community_peer_vouching"],
         store_uri="https://example.org/records",
     )
     with pytest.raises(ValidationError):
