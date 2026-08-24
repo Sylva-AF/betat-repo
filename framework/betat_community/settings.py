@@ -93,10 +93,37 @@ WSGI_APPLICATION = 'betat_community.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+#SQLite_DB
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.environ.get('BETAT_DB') or str(BASE_DIR / 'betat.sqlite3'),
+#     }
+# }
+
+#POSTGRES_DB
+# DATABASES = {
+#     'default' : {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'OPTIONS' : {'options': '-c search_path=betchema'},
+#         'NAME' :  'betatdb',
+#         'USER' :  'betuser',
+#         'PASSWORD' : 'panda#1',
+#         'HOST' : 'localhost',
+#         'PORT' : '5432',
+#     }
+# }
+
+#TEST_DB
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.environ.get('BETAT_DB') or str(BASE_DIR / 'betat.sqlite3'),
+    'default' : {
+        'ENGINE': 'django.db.backends.postgresql',
+        # 'OPTIONS' : {'options': '-c search_path=betchema'},
+        'NAME' :  'betat_testdb',
+        'USER' :  'betester',
+        'PASSWORD' : 'alltest#1',
+        'HOST' : 'localhost',
+        'PORT' : '5432',
     }
 }
 

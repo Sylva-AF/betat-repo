@@ -21,6 +21,9 @@ dependencies = [
     "django>=5,<6",
     "djangorestframework",
     "cryptography>=42",
+    "psycopg[binary]>=3",
+    "dj-database-url>=2",
+    "python-dotenv>=1",
 ]
 
 [project.optional-dependencies]

@@ -2,6 +2,12 @@
 protocol-list plugin named by `method`, returns the enrolled identity +
 DRF token on success or the standard error shape on Rejection. Public
 (auth: none→identity) — enrolling *is* how an applicant gets credentials.
+
+`method` must be on both the global PROTOCOL_LIST *and* this community's
+own `CommunityConfig.auth_methods` — a community that enabled only
+`cryptographic_signature` must not silently also accept
+`community_peer_vouching` enrollments just because that method exists
+somewhere on the protocol list.
 """
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -40,6 +46,12 @@ class EnrollView(APIView):
                 'not_configured',
                 'This install has no CommunityConfig yet — run `betat init` first.',
                 status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        if method not in config.auth_methods:
+            return error_response(
+                'method_not_enabled',
+                f"'{method}' is on the protocol list, but this community has not enabled it.",
+                status.HTTP_400_BAD_REQUEST,
             )
 
         result = plugin_class(config).enroll(applicant)

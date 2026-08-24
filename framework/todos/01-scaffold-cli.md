@@ -31,3 +31,8 @@ The installable skeleton: `pip install -e "./framework[dev]"` works, the `betat`
 ## Out of scope
 - Any model or endpoint (later sections) — this is skeleton only
 - Auth logic (§03), store logic (§05)
+
+## Note (2026-08 — full rationale in BLUEPRINT §01/§02 Decision Log)
+`init.py` grew operator-accountability steps (preflight checks, DNS-resolution check on the community id, a good-faith declaration, a contact email, an `.env` accountability record) layered on top of §02's unchanged `CommunityConfig`-writing logic — deliberately unbypassable even non-interactively, since anti-automation is the point. Live, tests pass on both engines (§10).
+
+A related idea — an interactive SQLite/PostgreSQL choice inside `init`, writing `BETAT_DB` to a `dj_database_url`-driven `settings.py` — was reviewed and deliberately not built: revisit later "when users complain... through a framework update or a patch." Not a trivial bolt-on when it is picked up — see BLUEPRINT for the sequencing gap (choosing Postgres mid-wizard doesn't move the current process's already-open DB connection).

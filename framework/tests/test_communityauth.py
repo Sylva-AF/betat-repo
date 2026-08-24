@@ -3,7 +3,9 @@ import dataclasses
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
 from betat_community.communityauth import crypto, floor
 from betat_community.communityauth.identity import ProvenancierIdentity, Rejection
@@ -225,3 +227,20 @@ def test_institutional_authenticate_rejects_after_institution_untrusted():
     result = InstitutionalAuth(config).authenticate({'identity': 'researcher-1'})
     assert isinstance(result, Rejection)
     assert result.code == 'untrusted_institution'
+
+
+# --- EnrollView: protocol-list membership is necessary, not sufficient ----
+
+def test_enroll_endpoint_rejects_method_not_enabled_for_community():
+    # community_peer_vouching is on the global protocol list but was never
+    # enabled by this community — /betat/enroll must still refuse it.
+    _config(auth_methods=['cryptographic_signature'])
+
+    response = APIClient().post(
+        reverse('betat-enroll'),
+        {'method': 'community_peer_vouching', 'applicant': {'identity': 'newcomer'}},
+        format='json',
+    )
+    assert response.status_code == 400
+    assert response.data['error']['code'] == 'method_not_enabled'
+    assert not Provenancier.objects.filter(identity='newcomer').exists()

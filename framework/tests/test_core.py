@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.management import CommandError, call_command
@@ -17,7 +19,12 @@ def _init(**overrides):
         auth_methods=["community_peer_vouching"],
     )
     kwargs.update(overrides)
-    call_command("init", **kwargs)
+    # init's operator-declaration and email steps are deliberately
+    # unbypassable (see BLUEPRINT/TODO 01 — anti-automation is the point
+    # for a real install), so tests simulate the human answers a real
+    # operator would give rather than skipping the prompts.
+    with patch("builtins.input", side_effect=["yes", "test-operator@example.org"]):
+        call_command("init", **kwargs)
 
 
 def test_init_writes_valid_config():

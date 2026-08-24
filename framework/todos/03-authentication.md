@@ -58,3 +58,6 @@ Two BLUEPRINT.md Decision Log entries (§03, dated 2026-08) already resolved the
 
 ### Closed out
 Developer ran `pip install -e "./framework[dev]"` (picked up the `cryptography` dependency added mid-section), then `makemigrations core communityauth` + `migrate`, then the full suite: **37/37 passed**, `manage.py check`: **clean**. Section done — next up is §04 (workflow), which depends on this section's `AuthMethod`/`ProvenancierIdentity` contract and `/betat/enroll`.
+
+### Addendum (§10 session, 2026-08) — bug fixed post-close
+`EnrollView` (`communityauth/api/views.py`) never checked the requested `method` against `CommunityConfig.auth_methods`, only against the global `PROTOCOL_LIST` — so a community that enabled only one method would still silently accept enrollments via any other protocol-list method. Fixed with a `method_not_enabled` rejection + regression test in `test_communityauth.py`, found while building `tests/test_acceptance.py` (§10). Full rationale: BLUEPRINT §10 Decision Log. Doesn't change this section's status — noted here so a future reader of this file knows the code moved after "done" was declared.
