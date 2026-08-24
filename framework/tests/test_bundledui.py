@@ -249,4 +249,14 @@ def test_landing_shows_configured_state(client):
     response = client.get(reverse('bundledui-landing'))
     assert response.status_code == 200
     assert config.name.encode() in response.content
+
+
+def test_landing_checklist_links_to_real_docs(client):
+    _config(auth_methods=['cryptographic_signature'])
+    response = client.get(reverse('bundledui-landing'))
+    assert response.status_code == 200
+    # §11 replaced the placeholder with real, resolving Framework Reference
+    # pages on the public site — no more bare "betat.org" front-door link.
+    assert b'betat.org/framework-cli.html' in response.content
+    assert b'betat.org/framework-api.html' in response.content
     assert b'Not configured yet' not in response.content

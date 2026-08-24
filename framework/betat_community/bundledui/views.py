@@ -195,10 +195,12 @@ def record_detail_view(request, record_id):
     })
 
 
-# DOCS_PLACEHOLDER: each item should deep-link to its own docs page once
-# §11 exists; betat.org is the honest placeholder for now, not a real
-# per-item URL — don't treat this as a resolved link.
-DOCS_PLACEHOLDER = 'https://betat.org'
+# Real docs, live on the public Jekyll site (betat.org) — §11's Framework
+# Reference pages. Not locally hosted: this app runs on a bare VPS with no
+# assumption of a docs build step, and the public site already exists,
+# free, for exactly this (see BLUEPRINT §11 Decision Log).
+DOCS_CLI = 'https://betat.org/framework-cli.html'
+DOCS_API = 'https://betat.org/framework-api.html'
 
 
 def landing_view(request):
@@ -211,25 +213,25 @@ def landing_view(request):
             'label': 'Install a robust database engine',
             'done': db_ready,
             'detail': 'PostgreSQL recommended; SQLite is for evaluation only.',
-            'docs': DOCS_PLACEHOLDER,
+            'docs': DOCS_CLI,
         },
         {
             'label': "Set up your community's provenance assertions and records",
             'done': configured,
             'detail': 'Declare your HI standard at or above the Betat baseline.',
-            'docs': DOCS_PLACEHOLDER,
+            'docs': DOCS_CLI,
         },
         {
             'label': 'Initiate your chosen authentication method(s)',
             'done': configured and bool(info.get('auth_methods')),
             'detail': 'Select deliberately from the protocol list.',
-            'docs': DOCS_PLACEHOLDER,
+            'docs': DOCS_CLI,
         },
         {
             'label': 'Adapt your own UI bundle if desired',
             'done': True,
             'detail': 'The bundled UI works as-is; replace or supplement it via the public API.',
-            'docs': DOCS_PLACEHOLDER,
+            'docs': DOCS_API,
         },
     ]
 

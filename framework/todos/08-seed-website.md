@@ -1,6 +1,6 @@
 # TODO 08 — Post-Install Seed Website
 
-> Status: in progress — everything buildable is done and tested (green on both engines); the one open item ("items deep-link to docs") is blocked on §11, not on this section
+> Status: done — §11 shipped real docs pages; the checklist now links to them (see "Closed out")
 > Blueprint: [§8](../BLUEPRINT.md) · Spec: COMMUNITY_FRAMEWORK.md → "The post-install seed website"
 > Depends on: 02, 07 · Blocks: nothing
 
@@ -15,7 +15,7 @@ A Django-style first-run page that proves the install works and shows the readin
 
 ## Acceptance criteria
 - [x] fresh install shows the page with correct outstanding states
-- [ ] items deep-link to docs — **blocked on §11**: links to `https://betat.org` as an honest placeholder (`DOCS_PLACEHOLDER` in `views.py`) since there are no real per-item docs pages to link to yet. Not closeable by more work in this section.
+- [x] items deep-link to docs — `betat.org/framework-cli.html` and `.../framework-api.html` (§11), real and resolving
 - [x] completing a step flips its state — derived live from `connection.vendor` + `/betat/info`, not a static list
 
 ## Security notes
@@ -28,15 +28,15 @@ A Django-style first-run page that proves the install works and shows the readin
 
 ### Design decisions (full rationale in BLUEPRINT §08 Decision Log)
 - **This page is not bound by §07's "public API only" rule the same way.** It's an operator/ops status view, not part of the Layer 2 consumption model — checking `connection.vendor` directly for the DB-engine item is correct here, since that's infrastructure state that has no business being exposed on any public API. The "is this install configured" check still goes through `ApiClient`/`/betat/info`, since that part genuinely is API-shaped.
-- **Doc links are a placeholder (`https://betat.org`), not real per-item deep links** — §11 (docs site) doesn't exist yet, so there's nowhere real to link to. Marked with a `DOCS_PLACEHOLDER` constant in `views.py` so it's easy to find and replace once §11 ships real pages.
+- **Doc links originally pointed at a placeholder** (`DOCS_PLACEHOLDER = 'https://betat.org'`) since §11 didn't exist yet. **Update (§11 session):** replaced with real, resolving links — `DOCS_CLI`/`DOCS_API` constants pointing at the new Framework Reference pages on the public Jekyll site (`betat.org/framework-cli.html`, `.../framework-api.html`).
 - **Only two of the four checklist items are actually distinguishable by current config state** — "provenance records" and "auth method" both resolve to the same underlying fact (`CommunityConfig` exists with a non-empty `auth_methods`, since our model doesn't support partial/staged configuration) and so always move together. The "UI bundle" item is always `DONE` (the bundled UI ships by definition — there's no partial-install state for it). This isn't a shortcut, it's an honest reflection of what the codebase can actually distinguish; not inventing fake granularity.
 - **Root path `/` now belongs to this page** — `betat_community/urls.py` mounts it directly, separate from `/community/` (§07's prefix).
 
 ### Files written this section
-- `bundledui/views.py` — `landing_view`, `DOCS_PLACEHOLDER`
+- `bundledui/views.py` — `landing_view`, `DOCS_CLI`/`DOCS_API` (updated in the §11 session; were `DOCS_PLACEHOLDER`)
 - `bundledui/templates/bundledui/landing.html`
 - `betat_community/urls.py` — mounts `/` → `landing_view`
-- `tests/test_bundledui.py` — two new tests (not-configured state, configured state)
+- `tests/test_bundledui.py` — landing-page tests, plus one added in the §11 session confirming the real doc links render
 
 ### Closed out
-Full suite green on both SQLite (79/79) and PostgreSQL (77 passed + 2 expected skips). Confirmed in a browser at `/`. Stays `in progress` (not `done`) purely because of the doc-links gap above — revisit once §11 exists and swap `DOCS_PLACEHOLDER` for real per-item links.
+Full suite green on both SQLite and PostgreSQL. Confirmed in a browser at `/`. The doc-links gap is now closed — §11 shipped real pages and this section's checklist links to them. Section done.
