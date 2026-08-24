@@ -4,7 +4,14 @@ queue/review require a verifier (IsVerifier — see mixins.py). Accept
 builds a PROVENANCE_SPEC record via record_builder.build_record() and
 appends it through store.append(); reject closes the submission with no
 record — the only two review outcomes (COMMUNITY_FRAMEWORK.md review()).
+
+Accept also does a best-effort auto-announce (§09) when BETAT_AUTO_ANNOUNCE
+is set — off by default. Failures are logged, never raised: a slow or
+unreachable registry must not block or fail an accept response.
 """
+import logging
+
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from betat_community.common.errors import error_response
+from betat_community.core.announce import AnnounceError, send_announcement
 from betat_community.core.models import CommunityConfig
 from betat_community.store import store
 
@@ -19,6 +27,8 @@ from ..models import Submission
 from ..record_builder import build_record
 from .mixins import IsVerifier
 from .serializers import ReviewRequestSerializer, SubmissionSerializer, SubmitRequestSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class SubmitView(APIView):
@@ -115,4 +125,11 @@ class ReviewView(APIView):
         submission.reviewed_by = verifier_identity
         submission.record_id = record.record_id
         submission.save(update_fields=['status', 'reviewed_at', 'reviewed_by', 'record_id'])
+
+        if getattr(settings, 'BETAT_AUTO_ANNOUNCE', False):
+            try:
+                send_announcement(config)
+            except AnnounceError as exc:
+                logger.warning('Auto-announce after accept failed: %s', exc)
+
         return Response(SubmissionSerializer(submission).data)

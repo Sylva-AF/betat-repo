@@ -15,7 +15,7 @@
 | 06 | Federation endpoints | [todos/06-federation.md](todos/06-federation.md) | Federation endpoints | done |
 | 07 | Bundled minimal UI | [todos/07-bundled-ui.md](todos/07-bundled-ui.md) | Consumption Model, Layer 2 | done |
 | 08 | Post-install seed website | [todos/08-seed-website.md](todos/08-seed-website.md) | The post-install seed website | in progress (blocked on §11 for doc links) |
-| 09 | Discoverability: announce & export | [todos/09-discoverability.md](todos/09-discoverability.md) | announce / export | not started |
+| 09 | Discoverability: announce & export | [todos/09-discoverability.md](todos/09-discoverability.md) | announce / export | done |
 | 10 | Acceptance test (the 7 steps) | [todos/10-acceptance-test.md](todos/10-acceptance-test.md) | Minimal Working Community | in progress |
 | 11 | Documentation site | [todos/11-docs-site.md](todos/11-docs-site.md) | Documentation Standard | not started |
 | 12 | Packaging & production guide | [todos/12-packaging.md](todos/12-packaging.md) | Design Goal 4; storage engines | not started |

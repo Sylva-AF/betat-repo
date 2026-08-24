@@ -182,3 +182,13 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ],
 }
+
+# Discoverability (§09) — see core/announce.py. No default: the registry's
+# own announce contract isn't defined anywhere yet (ARCHITECTURE.md calls
+# it "a sketch... to be refined by Contributors"), so there is nothing
+# honest to point this at until an operator has actually registered
+# somewhere. BETAT_AUTO_ANNOUNCE gates an optional, best-effort ping after
+# every accepted submission (workflow/api/views.py) — off by default; a
+# slow/unreachable registry must never block or fail an accept.
+BETAT_REGISTRY_URL = os.environ.get('BETAT_REGISTRY_URL', '')
+BETAT_AUTO_ANNOUNCE = os.environ.get('BETAT_AUTO_ANNOUNCE', 'false').lower() in ('1', 'true', 'yes')
