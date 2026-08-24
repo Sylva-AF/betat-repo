@@ -1,0 +1,29 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Betat community{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'bundledui/style.css' %}">
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="page">
+      <a href="{% url 'bundledui-records' %}">Records</a>
+      <a href="{% url 'bundledui-enroll' %}">Enroll</a>
+      <a href="{% url 'bundledui-submit' %}">Submit</a>
+      <a href="{% url 'bundledui-queue' %}">Verifier queue</a>
+    </div>
+  </nav>
+  <div class="page">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

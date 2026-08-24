@@ -1,0 +1,18 @@
+{% extends "bundledui/base.html" %}
+{% block title %}Verifier login{% endblock %}
+{% block content %}
+  <h1>Verifier login</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <p>
+      <label for="{{ form.username.id_for_label }}">Username</label>
+      {{ form.username }}
+    </p>
+    <p>
+      <label for="{{ form.password.id_for_label }}">Password</label>
+      {{ form.password }}
+    </p>
+    {{ form.non_field_errors }}
+    <button type="submit">Log in</button>
+  </form>
+{% endblock %}

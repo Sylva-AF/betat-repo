@@ -1,0 +1,9 @@
+{% extends "bundledui/base.html" %}
+{% block title %}Record not found{% endblock %}
+{% block content %}
+  <h1>Provenance record</h1>
+  <div class="state-banner state-unverified">
+    No provenance record found — human origin not confirmed.
+  </div>
+  <p class="record-meta">Requested id: {{ record_id }}</p>
+{% endblock %}

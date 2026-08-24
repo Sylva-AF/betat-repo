@@ -1,0 +1,55 @@
+{% extends "bundledui/base.html" %}
+{% block title %}Enroll — {{ community.name }}{% endblock %}
+{% block content %}
+  <h1>Enroll with {{ community.name }}</h1>
+  <p class="record-meta">Community standard: {{ community.hi_standard }}</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <p>
+      <label for="{{ form.method.id_for_label }}">{{ form.method.label }}</label>
+      {{ form.method }}
+      {{ form.method.errors }}
+    </p>
+    <p>
+      <label for="{{ form.identity.id_for_label }}">{{ form.identity.label }}</label>
+      {{ form.identity }}
+      {{ form.identity.errors }}
+    </p>
+    <p>
+      <label for="{{ form.display_name.id_for_label }}">{{ form.display_name.label }}</label>
+      {{ form.display_name }}
+      {{ form.display_name.errors }}
+    </p>
+
+    <h2>If enrolling via community peer vouching</h2>
+    <p>
+      <label for="{{ form.vouchers.id_for_label }}">{{ form.vouchers.label }}</label>
+      {{ form.vouchers }}
+      {{ form.vouchers.errors }}
+    </p>
+
+    <h2>If enrolling via cryptographic signature</h2>
+    <p class="helptext">Sign your own public key with your private key as proof of possession.</p>
+    <p>
+      <label for="{{ form.public_key.id_for_label }}">{{ form.public_key.label }}</label>
+      {{ form.public_key }}
+      {{ form.public_key.errors }}
+    </p>
+    <p>
+      <label for="{{ form.signature.id_for_label }}">{{ form.signature.label }}</label>
+      {{ form.signature }}
+      {{ form.signature.errors }}
+    </p>
+
+    <h2>If enrolling via institutional endorsement</h2>
+    <p class="helptext">Signature here is your institution's signature over your identity string.</p>
+    <p>
+      <label for="{{ form.institution_id.id_for_label }}">{{ form.institution_id.label }}</label>
+      {{ form.institution_id }}
+      {{ form.institution_id.errors }}
+    </p>
+
+    <button type="submit">Enroll</button>
+  </form>
+{% endblock %}

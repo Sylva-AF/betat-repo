@@ -15,8 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
+from betat_community.bundledui.views import landing_view
 from betat_community.communityauth.api.views import EnrollView
 from betat_community.federation.api.views import ChangesView, InfoView, RecordDetailView, RecordsView
 from betat_community.workflow.api.views import QueueView, ReviewView, SubmitView
@@ -31,4 +32,10 @@ urlpatterns = [
     path('betat/records', RecordsView.as_view(), name='betat-records'),
     path('betat/records/<str:record_id>', RecordDetailView.as_view(), name='betat-record-detail'),
     path('betat/changes', ChangesView.as_view(), name='betat-changes'),
+    # bundled UI (§07) — human-facing pages, under /community/ so they
+    # never collide with /betat/ (the API)
+    path('community/', include('betat_community.bundledui.urls')),
+    # first-run landing page + readiness checklist (§08) — the one page
+    # allowed to claim the root path
+    path('', landing_view, name='bundledui-landing'),
 ]

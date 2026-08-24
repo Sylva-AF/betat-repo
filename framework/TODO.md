@@ -13,8 +13,8 @@
 | 04 | Submission & verification workflow | [todos/04-workflow.md](todos/04-workflow.md) | Submission and verification workflow | done |
 | 05 | Append-only provenance store | [todos/05-provenance-store.md](todos/05-provenance-store.md) | Append-only store; PROVENANCE_SPEC | done |
 | 06 | Federation endpoints | [todos/06-federation.md](todos/06-federation.md) | Federation endpoints | done |
-| 07 | Bundled minimal UI | [todos/07-bundled-ui.md](todos/07-bundled-ui.md) | Consumption Model, Layer 2 | not started |
-| 08 | Post-install seed website | [todos/08-seed-website.md](todos/08-seed-website.md) | The post-install seed website | not started |
+| 07 | Bundled minimal UI | [todos/07-bundled-ui.md](todos/07-bundled-ui.md) | Consumption Model, Layer 2 | done |
+| 08 | Post-install seed website | [todos/08-seed-website.md](todos/08-seed-website.md) | The post-install seed website | in progress (blocked on §11 for doc links) |
 | 09 | Discoverability: announce & export | [todos/09-discoverability.md](todos/09-discoverability.md) | announce / export | not started |
 | 10 | Acceptance test (the 7 steps) | [todos/10-acceptance-test.md](todos/10-acceptance-test.md) | Minimal Working Community | in progress |
 | 11 | Documentation site | [todos/11-docs-site.md](todos/11-docs-site.md) | Documentation Standard | not started |

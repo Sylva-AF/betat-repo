@@ -1,0 +1,29 @@
+{% extends "bundledui/base.html" %}
+{% block title %}Betat — it's working{% endblock %}
+{% block content %}
+  <h1>Your Betat community is running</h1>
+
+  {% if configured %}
+    <p class="record-meta">{{ community.name }} ({{ community.id }})</p>
+  {% else %}
+    <div class="state-banner state-unverified">
+      Not configured yet — run <code>betat init</code> to declare this community's identity.
+    </div>
+  {% endif %}
+
+  <h2>Readiness checklist</h2>
+  <p class="record-meta">The honest distance between "it runs" and "it is production-ready."</p>
+
+  {% for item in checklist %}
+    <div class="record-card">
+      <span class="badge {% if item.done %}badge-verified{% else %}badge-neutral{% endif %}">
+        {% if item.done %}DONE{% else %}OUTSTANDING{% endif %}
+      </span>
+      <p class="record-title">{{ item.label }}</p>
+      <p class="record-meta">{{ item.detail }}</p>
+      <div class="record-links"><a href="{{ item.docs }}">Documentation ↗</a></div>
+    </div>
+  {% endfor %}
+
+  <p><a href="{% url 'bundledui-records' %}">View public records →</a></p>
+{% endblock %}
