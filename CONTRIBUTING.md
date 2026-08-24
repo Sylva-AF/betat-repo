@@ -104,6 +104,7 @@ These follow directly from the project's foundation documents and are not negoti
 - **Terminology is exact.** Use *Provenancier* and *Contributor* precisely as defined. The `provenancier` field name and the `hi_tag` field are permanent (see PROVENANCE_SPEC.md, Versioning).
 - **Security over elegance.** Where a design choice trades security or record integrity for convenience or aesthetics, security wins.
 - **The Betat Baseline is a floor.** Communities and code may strengthen it; no contribution may weaken, waive, or bypass it (see COMMUNITY_FRAMEWORK.md, The Betat Baseline).
+- **Definition of done includes docs.** A pull request that adds or changes a public capability — a CLI command, an API endpoint, a framework function — must update its runnable snippet on the [Framework Reference](framework-reference.html) pages (or add one, if none exists yet). A capability without a documented example is not finished (see COMMUNITY_FRAMEWORK.md, Documentation Standard).
 
 ---
 
