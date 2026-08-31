@@ -34,12 +34,11 @@ coverage/
 *.tsbuildinfo
 
 ## Dev-only docs
-Notes
-docs
-todo*
-TODO*
-blueprints
-commands
+/Notes
+/docs
+/todo*
+/TODO*
+/blueprints
 
 
 ## Calude
