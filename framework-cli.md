@@ -10,7 +10,7 @@ The `betat` CLI is a thin dispatcher over Django management commands — every c
 
 ## `betat init`
 
-Declares this install's community identity and writes its `CommunityConfig` — the one thing every other endpoint below depends on existing. Also runs an environment preflight (Python 3.11+, SQLite available), checks the declared community id resolves in DNS, and collects an operator good-faith declaration + contact email (written to `.env` as an accountability record — never used operationally). The declaration and email prompts are **not skippable**, even when the identity fields below are supplied as flags — this is deliberate: a script can't fabricate a resolving domain or a human's acceptance of the declaration.
+Declares this install's community identity and writes its `CommunityConfig` — the one thing every other endpoint below depends on existing. Also runs an environment preflight (Python 3.11+, SQLite available), checks the declared community id resolves in DNS, collects an operator good-faith declaration + contact email (written to `.env` as an accountability record — never used operationally), and writes a standard `manage.py` to the working directory (a `pip install` gives you the importable `betat_community` package only, per DISTRIBUTION.md — `betat init` is the one guaranteed point with a real project directory to put it in). From there it's plain Django: `python manage.py migrate`, `createsuperuser`, etc. work exactly as documented upstream. The declaration and email prompts are **not skippable**, even when the identity fields below are supplied as flags — this is deliberate: a script can't fabricate a resolving domain or a human's acceptance of the declaration.
 
 ```
 $ betat init --id marinebiology-lagos.org --name "Marine Biology Lagos" \
@@ -33,11 +33,40 @@ Every flag can be omitted for a fully interactive run instead. `--auth-method` i
 
 ### Database configuration
 
-`betat init` declares community identity — the database engine is separate, set via the `BETAT_DB` environment variable and read directly by `settings.py`. No `BETAT_DB` set at all means SQLite (`betat.sqlite3` in the project directory) — zero configuration, fine for evaluation. Point `BETAT_DB` at a PostgreSQL connection before a real deployment; PostgreSQL is the only engine where append-only is enforced at the database-permission level rather than by guard triggers (a full production setup guide is upcoming).
+`betat init` declares community identity — the database engine is separate, set via the `BETAT_DB` environment variable and read directly by `settings.py`. No `BETAT_DB` set at all means SQLite (`betat.sqlite3` in the project directory) — zero configuration, fine for evaluation. Point `BETAT_DB` at a PostgreSQL connection URL before a real deployment — no code changes, same installed package — see the [Production Guide](framework-production.html) for the role setup PostgreSQL needs to actually enforce append-only at the database-permission level. Optionally set `BETAT_DB_SCHEMA` to isolate Betat's tables in their own PostgreSQL schema instead of `public` — useful when sharing a database server with other applications; see `.env.example` for the exact steps.
 
-## `betat runserver` / `betat check`
+## `betat runserver`
 
-Plain aliases for `manage.py runserver` / `manage.py check` — nothing framework-specific to document beyond standard Django behavior.
+Plain alias for `manage.py runserver`.
+
+## `betat start`
+
+Alias for `manage.py runserver`, spelled as a verb a new operator reaches for first. Binds `0.0.0.0:8000` by default.
+
+```
+$ betat start
+Starting Betat community server...
+  Equivalent command: python manage.py runserver
+  For production use: gunicorn betat_community.wsgi:application
+```
+
+## `betat backup`
+
+Backs up the configured database — a plain SQLite file copy, or `pg_dump` on PostgreSQL. No Django equivalent; run it from cron or a systemd timer for scheduled backups.
+
+```
+$ betat backup
+SQLite backup written to: betat_backup_20260901_120000.sqlite3
+```
+
+## `betat check`, `manage.py check --deploy`, `manage.py shell`
+
+`betat check` is a plain alias for `manage.py check`. There is deliberately no `betat`-wrapped `check --deploy` or `betat shell`: Django resolves management commands by name, so a custom command sharing a built-in's name (`check`, `shell`) replaces that built-in everywhere, and a wrapper that calls back into the same name via `call_command()` recurses into itself infinitely (see BLUEPRINT §1 Decision Log, 2026-08-30). Use the standard Django forms directly:
+
+```
+$ python manage.py check --deploy   # production-readiness checks (SECRET_KEY, DEBUG, HTTPS)
+$ python manage.py shell            # interactive Python shell with the framework loaded
+```
 
 ## `betat announce`
 

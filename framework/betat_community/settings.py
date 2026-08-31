@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -36,7 +37,12 @@ if not SECRET_KEY:
             'BETAT_SECRET_KEY must be set in the environment when BETAT_DEBUG is false.'
         )
 
-ALLOWED_HOSTS = []
+# [DEV] Unset — Django's own dev-server host checks stay permissive at DEBUG=True.
+# [PROD] Set BETAT_ALLOWED_HOSTS to a comma-separated list of hosts this
+# community serves (e.g. archive.yourcommunity.org) — required once DEBUG=False.
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('BETAT_ALLOWED_HOSTS', '').split(',') if h.strip()
+]
 
 
 # Application definition
@@ -68,6 +74,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Phase 1/2 gate (TODO 07 amendment) — redirects community-facing pages
+    # to the installer screen until a CommunityConfig exists. Last in the
+    # list: it only needs request.path and the database, nothing earlier
+    # middleware provides.
+    'betat_community.bundledui.middleware.BetatConfiguredMiddleware',
 ]
 
 ROOT_URLCONF = 'betat_community.urls'
@@ -93,39 +104,39 @@ WSGI_APPLICATION = 'betat_community.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-#SQLite_DB
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.environ.get('BETAT_DB') or str(BASE_DIR / 'betat.sqlite3'),
+# Ships permanently — not stripped before packaging (DISTRIBUTION.md "What
+# ships", corrected in BLUEPRINT §12 Decision Log). BETAT_DB unset means
+# SQLite, zero configuration. Set to a full PostgreSQL URL
+# (postgres://user:pass@host:5432/db) and this same installed package
+# connects to PostgreSQL — no code changes, no separate settings module.
+# This is also how the dual-DB ship gate (BLUEPRINT §0) is run before a
+# release: point BETAT_DB at a live Postgres and re-run `pytest tests/`.
+# dj_database_url is therefore a plain pyproject.toml dependency, not an
+# extra — this import must always succeed, even for SQLite-only installs.
+#
+# BETAT_DB_SCHEMA (optional, PostgreSQL only): isolates Betat's tables in
+# their own schema instead of the default 'public' schema — useful when
+# sharing a PostgreSQL server with other applications. Create the schema
+# first (`CREATE SCHEMA <name>;`), then set BETAT_DB_SCHEMA=<name>. NOTE:
+# framework-production.md's REVOKE/GRANT role setup is written against
+# 'public' only — an operator using BETAT_DB_SCHEMA must adapt those
+# statements to their schema until that doc is updated (BLUEPRINT §12
+# Decision Log, 2026-08-30).
+_betat_db = os.environ.get('BETAT_DB')
+if _betat_db:
+    _db_config = dj_database_url.parse(_betat_db, conn_max_age=600, conn_health_checks=True)
+    _betat_db_schema = os.environ.get('BETAT_DB_SCHEMA', '').strip()
+    if _betat_db_schema:
+        _db_config.setdefault('OPTIONS', {})
+        _db_config['OPTIONS']['options'] = f'-c search_path={_betat_db_schema}'
+    DATABASES = {'default': _db_config}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': str(BASE_DIR / 'betat.sqlite3'),
+        }
     }
-}
-
-#POSTGRES_DB
-# DATABASES = {
-#     'default' : {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'OPTIONS' : {'options': '-c search_path=betchema'},
-#         'NAME' :  'betatdb',
-#         'USER' :  'betuser',
-#         'PASSWORD' : 'panda#1',
-#         'HOST' : 'localhost',
-#         'PORT' : '5432',
-#     }
-# }
-
-#TEST_DB
-# DATABASES = {
-#     'default' : {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         # 'OPTIONS' : {'options': '-c search_path=betchema'},
-#         'NAME' :  'betat_testdb',
-#         'USER' :  'betester',
-#         'PASSWORD' : 'alltest#1',
-#         'HOST' : 'localhost',
-#         'PORT' : '5432',
-#     }
-# }
 
 
 # Password validation

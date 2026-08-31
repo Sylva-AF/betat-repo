@@ -19,7 +19,7 @@ The installable skeleton: `pip install -e "./framework[dev]"` works, the `betat`
 
 ## Acceptance criteria
 - [x] `pip install -e "./framework[dev]"` succeeds on Python 3.11
-- [x] `betat --help` lists all five commands
+- [x] `betat --help` lists all commands (`init`, `runserver`, `check`, `announce`, `export`, `start`, `backup` — `start`/`backup` added 2026-08-30, BLUEPRINT §1 Decision Log)
 - [x] `python manage.py check` passes
 - [x] `pytest` runs green with zero tests
 - [x] each command is runnable both as `betat <cmd>` and `manage.py <cmd>` (init/announce/export are stubs — real logic is §02/§09's job)

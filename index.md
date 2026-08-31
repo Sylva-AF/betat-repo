@@ -9,9 +9,25 @@ A child born today will grow up in a world where it is increasingly impossible t
 
 **We do not chase the fake. We prove the real.**
 
-## Start where you are
+---
 
-**[For Everyone](for-everyone.html)** — the idea in plain words, the full explanation, and the philosophy. No technical background needed.
+## What do you want to do?
+
+### [Find a community](find-a-community.html)
+
+A Betat community archives a specific type of human knowledge — scientific observations, oral traditions, creative works, field research. If your knowledge belongs to a record, find the community that preserves it.
+
+### [Join a community](join-a-community.html)
+
+Your community is already using Betat. You want to become a Provenancier — a verified human contributor — and add your knowledge to the permanent record.
+
+### [Start a community](start-a-community.html)
+
+Your community's knowledge deserves a permanent, verified record, and no Betat community exists for it yet. You are ready to create one.
+
+---
+
+## For builders and contributors
 
 **[For Builders](for-builders.html)** — the architecture, the community framework, and the provenance record specification. Where Contributors start.
 

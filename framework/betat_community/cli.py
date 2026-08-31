@@ -1,14 +1,22 @@
 """betat — thin CLI dispatcher over Django management commands.
 
-Recognizes exactly the five commands declared in BLUEPRINT.md §1
-(init, runserver, check, announce, export). Each is independently
-runnable as `manage.py <cmd>` too — this is a thinner front door, not
-a separate implementation.
+Recognizes the commands declared in BLUEPRINT.md §1/§0 Conventions
+(init, runserver, check, announce, export, start, backup). Each is
+independently runnable as `manage.py <cmd>` too — this is a thinner
+front door, not a separate implementation.
+
+`check` and `shell` are deliberately NOT wrapped with betat-specific
+commands of the same name — see BLUEPRINT §1 Decision Log (2026-08-30):
+a management command sharing a built-in Django command's name overrides
+that built-in everywhere, and a wrapper that then calls back into the
+same name via call_command() recurses into itself infinitely. Use the
+standard Django forms directly: `python manage.py check --deploy`,
+`python manage.py shell`.
 """
 import os
 import sys
 
-COMMANDS = ('init', 'runserver', 'check', 'announce', 'export')
+COMMANDS = ('init', 'runserver', 'check', 'announce', 'export', 'start', 'backup')
 
 
 def _print_help():
