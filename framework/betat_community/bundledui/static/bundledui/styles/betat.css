@@ -118,7 +118,7 @@ a { color: var(--bt-ink); }
 }
 
 .bt-body {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--bt-muted);
   line-height: 1.6;
 }
@@ -308,7 +308,7 @@ pre.bt-evidence {
 
 .bt-label-field {
   display: block;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--bt-muted);
   margin-bottom: 6px;
 }
@@ -330,7 +330,7 @@ pre.bt-evidence {
   padding: 9px 12px;
   border: 0.5px solid var(--bt-border);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 15px;
   font-family: Georgia, 'Times New Roman', serif;
   background: var(--bt-paper);
   color: var(--bt-ink);
@@ -356,7 +356,7 @@ pre.bt-evidence {
 }
 
 .bt-field-hint {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--bt-muted);
   margin-top: 4px;
 }

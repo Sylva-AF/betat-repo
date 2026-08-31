@@ -9,21 +9,35 @@ from django import forms
 
 class EnrollForm(forms.Form):
     method = forms.ChoiceField(label='Authentication method')
-    identity = forms.CharField(label='Identity / handle')
-    display_name = forms.CharField(label='Display name (optional)', required=False)
+    identity = forms.CharField(
+        label='Identity / handle',
+        widget=forms.TextInput(attrs={'placeholder': 'e.g. name@example.com or a unique handle'}),
+    )
+    display_name = forms.CharField(
+        label='Display name (optional)', required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'e.g. Jane, or leave blank to stay pseudonymous'}),
+    )
 
     # community_peer_vouching
     vouchers = forms.CharField(
         label='Vouchers (comma-separated identities of existing members)', required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'alice@example.com, bob@example.com'}),
     )
     # cryptographic_signature
-    public_key = forms.CharField(label='Public key (hex)', required=False)
+    public_key = forms.CharField(
+        label='Public key (hex)', required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'hex-encoded public key'}),
+    )
     signature = forms.CharField(
         label='Signature (hex) — proof of possession, or institutional endorsement',
         required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'hex-encoded signature'}),
     )
     # institutional_endorsement
-    institution_id = forms.CharField(label='Institution id', required=False)
+    institution_id = forms.CharField(
+        label='Institution id', required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'e.g. your-institution.org'}),
+    )
 
     def __init__(self, *args, auth_methods=(), **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,9 +58,18 @@ class EnrollForm(forms.Form):
 
 
 class SubmitForm(forms.Form):
-    title = forms.CharField(label='Title (optional)', required=False)
-    location = forms.CharField(label='Content location (URI/DOI/IPFS)')
-    content_hash = forms.CharField(label='Content hash (sha256:...)')
+    title = forms.CharField(
+        label='Title (optional)', required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'e.g. Field notes from the March 2026 survey'}),
+    )
+    location = forms.CharField(
+        label='Content location (URI/DOI/IPFS)',
+        widget=forms.TextInput(attrs={'placeholder': 'https://example.com/... or ipfs://... or doi:...'}),
+    )
+    content_hash = forms.CharField(
+        label='Content hash (sha256:...)',
+        widget=forms.TextInput(attrs={'placeholder': 'sha256:...'}),
+    )
     language = forms.CharField(label='Language code', initial='en')
     declaration_accepted = forms.BooleanField(
         label='I declare this content was originated by a human being, as described above.',
