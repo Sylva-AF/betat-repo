@@ -1,0 +1,28 @@
+{% extends "bundledui/setup/base_setup.html" %}
+{% block step_title %}Authentication{% endblock %}
+{% block content %}
+<p class="wz-step-label">Step 5 — Authentication</p>
+<h1 class="wz-title">How members authenticate</h1>
+<p class="wz-desc">
+  Choose one or more methods your community will use to verify that
+  a Provenancier is a real, known human before they can submit content.
+  You must enable at least one method from the Betat protocol list.
+</p>
+{% if error %}<div class="wz-error">{{ error }}</div>{% endif %}
+<form method="post" action="{% url 'bundledui-setup-5' %}">
+  {% csrf_token %}
+  <div class="wz-checks">
+    {% for method in auth_methods %}
+    <label class="wz-check-item">
+      <input type="checkbox" name="auth_methods" value="{{ method }}"
+             {% if method in setup.auth_methods|default:'' %}checked{% endif %}>
+      <span>{{ method }}</span>
+    </label>
+    {% endfor %}
+  </div>
+  <div class="wz-actions">
+    <a href="{% url 'bundledui-setup-4' %}" class="wz-btn-back">← Back</a>
+    <button type="submit" class="wz-btn-primary">Continue →</button>
+  </div>
+</form>
+{% endblock %}

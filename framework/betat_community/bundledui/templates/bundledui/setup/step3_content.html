@@ -1,0 +1,40 @@
+{% extends "bundledui/setup/base_setup.html" %}
+{% block step_title %}Content type{% endblock %}
+{% block content %}
+<p class="wz-step-label">Step 3 — Content</p>
+<h1 class="wz-title">What your community verifies</h1>
+<p class="wz-desc">
+  Each community verifies exactly one type of human-originated content.
+  This is registered permanently — a community authorised to verify
+  scientific observations cannot issue HI records for creative works.
+</p>
+{% if error %}<div class="wz-error">{{ error }}</div>{% endif %}
+<form method="post" action="{% url 'bundledui-setup-3' %}">
+  {% csrf_token %}
+  <div class="wz-group">
+    <label class="wz-label" for="content_type">Content type</label>
+    <select class="wz-select" id="content_type" name="content_type" required>
+      <option value="">— select —</option>
+      {% for key, label in content_type_choices %}
+      <option value="{{ key }}" {% if setup.content_type == key %}selected{% endif %}>
+        {{ label }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="wz-group">
+    <label class="wz-label" for="hi_standard_addition">
+      Additional HI standard
+      <span style="color:var(--bt-muted);font-weight:400">(optional)</span>
+    </label>
+    <textarea class="wz-textarea" id="hi_standard_addition" name="hi_standard_addition"
+              placeholder="Leave blank to use the Betat baseline standard.">{{ setup.hi_standard_addition|default:'' }}</textarea>
+    <p class="wz-hint">Strengthen-only. You may add community-specific requirements
+      on top of the Betat baseline — you cannot weaken it.</p>
+  </div>
+  <div class="wz-actions">
+    <a href="{% url 'bundledui-setup-2' %}" class="wz-btn-back">← Back</a>
+    <button type="submit" class="wz-btn-primary">Continue →</button>
+  </div>
+</form>
+{% endblock %}

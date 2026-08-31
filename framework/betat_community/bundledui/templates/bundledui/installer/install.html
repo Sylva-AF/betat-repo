@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Betat — installation complete</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bt-ink:    #1C1B1A;
+      --bt-paper:  #FBFAF7;
+      --bt-warm:   #E8E4DB;
+      --bt-muted:  #6B6863;
+      --bt-border: #D4D0C8;
+      --bt-green:  #3B6D11;
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background: var(--bt-warm);
+      min-height: 100vh;
+      /* Explicit column direction — a single flex child centers either
+         way, but the canvas's lack of a declared CSS box (below) was
+         letting its intrinsic inline sizing widen the cross-axis and
+         drift the whole column right. Belt-and-suspenders with the
+         canvas fix below. */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+    }
+
+    .bt-installer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    /* Canvas defaults to inline display with no CSS box of its own —
+       only its width/height HTML attributes. Without a matching CSS
+       size, it can render wider than its attributes in the flex
+       cross-axis and push the centered column off to one side. */
+    .eclipse-wrap {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 2.5rem;
+      flex-shrink: 0;
+    }
+
+    #eclipseCanvas {
+      display: block;
+      width: 160px;
+      height: 160px;
+    }
+
+    .install-title {
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--bt-ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .install-sub {
+      font-size: 15px;
+      color: var(--bt-muted);
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .milestones {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 2.5rem;
+      text-align: left;
+    }
+
+    .milestone {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 13px;
+      color: var(--bt-muted);
+      opacity: 0;
+      animation: fadein 0.4s ease forwards;
+    }
+
+    .milestone:nth-child(1) { animation-delay: 0.3s; }
+    .milestone:nth-child(2) { animation-delay: 0.8s; }
+    .milestone:nth-child(3) { animation-delay: 1.3s; }
+    .milestone:nth-child(4) { animation-delay: 1.8s; }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .milestone-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--bt-green);
+      flex-shrink: 0;
+    }
+
+    .bt-divider {
+      width: 100%;
+      border: none;
+      border-top: 0.5px solid var(--bt-border);
+      margin-bottom: 2rem;
+    }
+
+    .install-cta {
+      display: block;
+      background: var(--bt-ink);
+      color: var(--bt-paper);
+      text-decoration: none;
+      padding: 11px 32px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-family: Georgia, serif;
+      width: 100%;
+      max-width: 260px;
+      margin: 0 auto 1rem;
+      text-align: center;
+    }
+
+    .install-cta:hover { background: #333230; }
+
+    .install-alt {
+      font-size: 12px;
+      color: var(--bt-muted);
+    }
+
+    .install-alt code {
+      font-family: 'Courier New', Courier, monospace;
+      background: rgba(28,27,26,0.08);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    .install-footer {
+      margin-top: 3rem;
+      font-size: 11px;
+      color: var(--bt-border);
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="bt-installer">
+
+  <div class="eclipse-wrap">
+    <canvas id="eclipseCanvas" width="160" height="160"></canvas>
+  </div>
+
+  <h1 class="install-title">Betat is installed</h1>
+  <p class="install-sub">
+    The human intelligence layer is ready.<br>
+    Complete setup to bring your community online.
+  </p>
+
+  <div class="milestones">
+    <div class="milestone">
+      <div class="milestone-dot"></div>
+      <span>Framework installed — betat-community {{ version|default:"0.1.0" }}</span>
+    </div>
+    <div class="milestone">
+      <div class="milestone-dot"></div>
+      <span>Django {{ django_version|default:"5.2" }} ready</span>
+    </div>
+    <div class="milestone">
+      <div class="milestone-dot"></div>
+      <span>Provenance store initialized</span>
+    </div>
+    <div class="milestone">
+      <div class="milestone-dot"></div>
+      <span>HI protocol active</span>
+    </div>
+  </div>
+
+  <hr class="bt-divider">
+
+  <a href="{% url 'bundledui-setup-1' %}" class="install-cta">
+    Begin setup
+  </a>
+
+  <p class="install-alt">
+    Or run <code>betat init</code> in your terminal
+  </p>
+
+  <p class="install-footer">BETAT · HUMAN INTELLIGENCE FRAMEWORK</p>
+
+</div>
+
+<script>
+(function () {
+  const canvas = document.getElementById('eclipseCanvas');
+  const ctx    = canvas.getContext('2d');
+  const W = 160, H = 160, cx = W / 2, cy = H / 2;
+
+  /* ── Geometry ─────────────────────────────────────── */
+  const R      = 70;           // outer circle radius
+  const r      = R * 0.82;     // inner circle radius
+  const orbitR = R - r;        // distance: inner center → canvas center
+  const badgeR = 11;           // HI badge radius
+
+  /* ── Colours ──────────────────────────────────────── */
+  const INK   = '#1C1B1A';
+  const PAPER = '#FBFAF7';
+
+  /* ── Animation state ──────────────────────────────── */
+  let orbitAngle = -Math.PI / 2;   // badge starts at 12 o'clock
+  let spinAngle  = 0;
+
+  const orbitSpeed = 0.008;        // badge orbital speed (rad/frame)
+  const spinSpeed  = 0.04;         // dot self-spin speed  (rad/frame)
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+
+    /* Outer circle — fixed, dark (the protocol) */
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.fillStyle = INK;
+    ctx.fill();
+
+    /* Inner circle — near-white, orbits inside the outer */
+    const icx = cx + orbitR * Math.cos(orbitAngle);
+    const icy = cy + orbitR * Math.sin(orbitAngle);
+    ctx.beginPath();
+    ctx.arc(icx, icy, r, 0, Math.PI * 2);
+    ctx.fillStyle = PAPER;
+    ctx.fill();
+
+    /* HI badge — rides the contact point on the outer rim */
+    const bx = cx + (R - badgeR - 2) * Math.cos(orbitAngle);
+    const by = cy + (R - badgeR - 2) * Math.sin(orbitAngle);
+
+    /* Badge circle */
+    ctx.beginPath();
+    ctx.arc(bx, by, badgeR, 0, Math.PI * 2);
+    ctx.fillStyle = PAPER;
+    ctx.fill();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    /* HI text — always upright */
+    ctx.save();
+    ctx.translate(bx, by);
+    ctx.font = '600 6px Georgia, serif';
+    ctx.fillStyle = INK;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('HI', 0, 0);
+    ctx.restore();
+
+    /* Spinning dot on the badge circumference */
+    const dotR = badgeR - 3;
+    const dx = bx + dotR * Math.cos(spinAngle);
+    const dy = by + dotR * Math.sin(spinAngle);
+    ctx.beginPath();
+    ctx.arc(dx, dy, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = INK;
+    ctx.fill();
+
+    /* Advance angles */
+    orbitAngle += orbitSpeed;
+    spinAngle  += spinSpeed;
+
+    requestAnimationFrame(frame);
+  }
+
+  frame();
+}());
+</script>
+
+</body>
+</html>

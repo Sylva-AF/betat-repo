@@ -1,0 +1,63 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Betat{% endblock %} — {{ config.name|default:"Community" }}</title>
+  <link rel="stylesheet" href="{% static 'bundledui/styles/betat.css' %}">
+</head>
+<body>
+
+<nav class="bt-nav">
+  <a href="{% url 'bundledui-landing' %}" class="bt-nav-brand">
+    <svg class="bt-eclipse" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="11" fill="#FBFAF7"/>
+      <circle cx="10.8" cy="12" r="9.9" fill="#1C1B1A"/>
+      <circle cx="10.4" cy="12" r="8.9" fill="#FBFAF7"/>
+      <circle cx="5.5" cy="12" r="2.2" fill="none" stroke="#1C1B1A" stroke-width="0.8"/>
+      <text x="5.5" y="12.4" font-family="Georgia,serif" font-size="2.2"
+            fill="#1C1B1A" text-anchor="middle" font-weight="600">HI</text>
+    </svg>
+    <span class="bt-nav-brand-name">{{ config.name|default:"Betat" }}</span>
+  </a>
+
+  <a href="{% url 'bundledui-records' %}"
+     class="{% if request.resolver_match.url_name == 'bundledui-records' %}bt-active{% endif %}">
+    Records
+  </a>
+  <a href="{% url 'bundledui-enroll' %}"
+     class="{% if request.resolver_match.url_name == 'bundledui-enroll' %}bt-active{% endif %}">
+    Enroll
+  </a>
+  <a href="{% url 'bundledui-submit' %}"
+     class="{% if request.resolver_match.url_name == 'bundledui-submit' %}bt-active{% endif %}">
+    Submit
+  </a>
+  <a href="{% url 'bundledui-queue' %}"
+     class="{% if request.resolver_match.url_name == 'bundledui-queue' or request.resolver_match.url_name == 'bundledui-verifier-login' %}bt-active{% endif %}">
+    Review queue
+  </a>
+</nav>
+
+{% if messages %}
+<div style="max-width:780px;margin:1rem auto;padding:0 1.5rem">
+  {% for message in messages %}
+  <div class="bt-banner {% if message.tags == 'error' %}bt-banner-error{% elif message.tags == 'warning' %}bt-banner-warning{% elif message.tags == 'success' %}bt-banner-success{% endif %}">
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="bt-footer">
+  <span>Powered by <a href="https://betat.org" target="_blank" rel="noopener">Betat</a></span>
+  &nbsp;·&nbsp;
+  <span>{{ config.id|default:"" }}</span>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Provenance record{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Provenance record</p>
+  <h1 class="bt-h1">Full record</h1>
+
+  {% if record.tampered %}
+  <div class="bt-banner bt-state-tampered">
+    This record failed integrity validation — its computed hash does not match its stored record_id.
+    Do not treat this record's contents as trustworthy.
+  </div>
+  {% else %}
+  {% include "bundledui/community/_record_card.html" %}
+
+  {% if content_state == 'verified' %}
+  <div class="bt-banner bt-state-verified">Content verified intact.</div>
+  {% elif content_state == 'changed' %}
+  <div class="bt-banner bt-state-changed">
+    The content at this location has changed since it was verified on
+    {{ record.verification.verification_timestamp|slice:":10" }}.
+    What you are seeing may differ from what the community verified.
+  </div>
+  {% elif content_state == 'unreachable' %}
+  <div class="bt-banner bt-state-unreachable">
+    The original location is not currently reachable. The provenance record remains valid and intact.
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <hr class="bt-divider">
+
+  <p class="bt-label">Evidence</p>
+  <h2 class="bt-h2">Full provenance record</h2>
+  <pre class="bt-evidence">{{ record_json }}</pre>
+
+</div>
+{% endblock %}

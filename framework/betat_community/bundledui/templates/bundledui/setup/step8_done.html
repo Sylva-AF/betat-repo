@@ -1,0 +1,31 @@
+{% extends "bundledui/setup/base_setup.html" %}
+{% block step_title %}Done{% endblock %}
+{% block content %}
+<div style="text-align:center;padding:1rem 0 1.5rem">
+  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" aria-label="Betat eclipse">
+    <circle cx="12" cy="12" r="11" fill="#FBFAF7" stroke="#D4D0C8" stroke-width="0.5"/>
+    <circle cx="10.8" cy="12" r="9.9" fill="#1C1B1A"/>
+    <circle cx="10.4" cy="12" r="8.9" fill="#FBFAF7"/>
+    <circle cx="5.5" cy="12" r="2.2" fill="none" stroke="#1C1B1A" stroke-width="0.8"/>
+    <text x="5.5" y="12.4" font-family="Georgia,serif" font-size="2.2"
+          fill="#1C1B1A" text-anchor="middle" font-weight="600">HI</text>
+  </svg>
+</div>
+<p class="wz-step-label" style="text-align:center">Setup complete</p>
+<h1 class="wz-title" style="text-align:center;margin-bottom:0.25rem">
+  {{ config.name }} is live
+</h1>
+<p class="wz-desc" style="text-align:center;margin-bottom:1.5rem">
+  Community id: <code>{{ config.id }}</code>
+</p>
+<hr class="wz-divider">
+<p class="wz-desc" style="margin-bottom:0.75rem">Next steps:</p>
+<div class="wz-cmd">python manage.py migrate</div>
+<div class="wz-cmd">python manage.py createsuperuser</div>
+<div class="wz-cmd">python manage.py runserver</div>
+<div class="wz-actions" style="margin-top:2rem;justify-content:center">
+  <a href="{% url 'bundledui-landing' %}" class="wz-btn-primary">
+    Go to your community →
+  </a>
+</div>
+{% endblock %}

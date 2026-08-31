@@ -1,0 +1,27 @@
+{% extends "bundledui/setup/base_setup.html" %}
+{% block step_title %}Records location{% endblock %}
+{% block content %}
+<p class="wz-step-label">Step 4 — Records</p>
+<h1 class="wz-title">Where records are published</h1>
+<p class="wz-desc">
+  Betat does not host content — it points to it. Provide the URI
+  where your community's provenance records will be publicly accessible.
+  This is where the world finds your records.
+</p>
+{% if error %}<div class="wz-error">{{ error }}</div>{% endif %}
+<form method="post" action="{% url 'bundledui-setup-4' %}">
+  {% csrf_token %}
+  <div class="wz-group">
+    <label class="wz-label" for="store_uri">Store URI</label>
+    <input class="wz-input" type="url" id="store_uri" name="store_uri"
+           value="{{ setup.store_uri|default:'' }}"
+           placeholder="https://archive.example.org/betat/records" required>
+    <p class="wz-hint">The public URL where your federation endpoint serves records.
+      Usually your domain followed by /betat/records or similar.</p>
+  </div>
+  <div class="wz-actions">
+    <a href="{% url 'bundledui-setup-3' %}" class="wz-btn-back">← Back</a>
+    <button type="submit" class="wz-btn-primary">Continue →</button>
+  </div>
+</form>
+{% endblock %}

@@ -12,19 +12,41 @@ build-backend = "setuptools.build_meta"
 name = "betat-community"
 version = "0.1.0"
 description = "Reference community framework for Betat — provenance of human-originated content."
+readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
     { name = "Ateafac Forsong" },
 ]
+keywords = ["provenance", "human-intelligence", "betat", "HI", "content-verification"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Internet :: WWW/HTTP",
+]
+# psycopg/dj-database-url are dev-time only (the PostgreSQL leg of the dual-DB
+# ship gate, DISTRIBUTION.md) — the settings.py block that imports them is
+# manually stripped before a release build, so the packaged wheel never
+# imports either. Kept as plain dependencies here (not an extra) since dev
+# work — including `manage.py check`/pytest, which import settings.py as-is —
+# needs them present unconditionally, same as the rest of [dev].
 dependencies = [
     "django>=5,<6",
     "djangorestframework",
     "cryptography>=42",
+    "python-dotenv>=1",
     "psycopg[binary]>=3",
     "dj-database-url>=2",
-    "python-dotenv>=1",
 ]
+
+[project.urls]
+Homepage = "https://betat.org"
+Documentation = "https://betat.org/for-builders.html"
+Repository = "https://github.com/Sylva-AF/betat-repo"
+"Bug Tracker" = "https://github.com/Sylva-AF/betat-repo/issues"
 
 [project.optional-dependencies]
 dev = [

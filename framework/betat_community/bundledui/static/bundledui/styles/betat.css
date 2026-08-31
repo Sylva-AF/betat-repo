@@ -1,0 +1,459 @@
+/* betat.css — bundled UI stylesheet for betat-community
+   Warm documentary aesthetic matching betat.org.
+   No framework dependency. Ships with the package.
+   Lives at: bundledui/static/bundledui/styles/betat.css
+*/
+
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Palette ────────────────────────────────────────────── */
+:root {
+  --bt-ink:        #1C1B1A;
+  --bt-paper:      #FBFAF7;
+  --bt-warm:       #E8E4DB;
+  --bt-muted:      #6B6863;
+  --bt-border:     #D4D0C8;
+  --bt-green-bg:   #EAF3DE;
+  --bt-green-fg:   #3B6D11;
+  --bt-amber-bg:   #FAEEDA;
+  --bt-amber-fg:   #854F0B;
+  --bt-red-bg:     #FCEBEB;
+  --bt-red-fg:     #A32D2D;
+  --bt-neutral-bg: #F1EFEA;
+  --bt-neutral-fg: #6B6863;
+}
+
+/* ── Base ───────────────────────────────────────────────── */
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--bt-ink);
+  background: var(--bt-warm);
+  min-height: 100vh;
+}
+
+code, pre {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875em;
+  background: rgba(28,27,26,0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+a { color: var(--bt-ink); }
+
+/* ── Nav ────────────────────────────────────────────────── */
+.bt-nav {
+  background: var(--bt-ink);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.bt-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+  text-decoration: none;
+}
+
+.bt-nav-brand-name {
+  color: var(--bt-paper);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.bt-nav a {
+  color: #C8C4BC;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.bt-nav a:hover       { color: var(--bt-paper); }
+.bt-nav a.bt-active   { color: var(--bt-paper); border-bottom-color: var(--bt-paper); }
+
+/* ── Eclipse logo SVG (inline, reusable) ────────────────── */
+.bt-eclipse { display: inline-block; flex-shrink: 0; }
+
+/* ── Page wrapper ───────────────────────────────────────── */
+.bt-page {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ── Typography ─────────────────────────────────────────── */
+.bt-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bt-muted);
+  margin-bottom: 0.4rem;
+}
+
+.bt-h1 {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--bt-ink);
+  margin-bottom: 0.4rem;
+}
+
+.bt-h2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--bt-ink);
+  margin-bottom: 0.2rem;
+}
+
+.bt-body {
+  font-size: 14px;
+  color: var(--bt-muted);
+  line-height: 1.6;
+}
+
+/* ── Banner ─────────────────────────────────────────────── */
+.bt-banner {
+  background: var(--bt-warm);
+  border-left: 3px solid var(--bt-ink);
+  border-radius: 0 6px 6px 0;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 13px;
+  color: var(--bt-ink);
+}
+
+.bt-banner.bt-banner-warning {
+  border-left-color: var(--bt-amber-fg);
+  background: var(--bt-amber-bg);
+  color: var(--bt-amber-fg);
+}
+
+.bt-banner.bt-banner-error {
+  border-left-color: var(--bt-red-fg);
+  background: var(--bt-red-bg);
+  color: var(--bt-red-fg);
+}
+
+.bt-banner.bt-banner-success {
+  border-left-color: var(--bt-green-fg);
+  background: var(--bt-green-bg);
+  color: var(--bt-green-fg);
+}
+
+.bt-banner.bt-banner-neutral {
+  border-left-color: var(--bt-neutral-fg);
+  background: var(--bt-neutral-bg);
+  color: var(--bt-neutral-fg);
+}
+
+/* ── Cards ──────────────────────────────────────────────── */
+.bt-card {
+  background: var(--bt-paper);
+  border: 0.5px solid var(--bt-border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.bt-card-accent {
+  border-left: 3px solid var(--bt-amber-fg);
+  border-radius: 0 8px 8px 0;
+}
+
+.bt-card-accent.bt-done {
+  border-left-color: var(--bt-green-fg);
+}
+
+/* ── Badges ─────────────────────────────────────────────── */
+.bt-badge {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.bt-badge-outstanding {
+  background: var(--bt-amber-bg);
+  color: var(--bt-amber-fg);
+}
+
+.bt-badge-done {
+  background: var(--bt-green-bg);
+  color: var(--bt-green-fg);
+}
+
+.bt-badge-pending {
+  background: var(--bt-amber-bg);
+  color: var(--bt-amber-fg);
+}
+
+.bt-badge-accepted {
+  background: var(--bt-green-bg);
+  color: var(--bt-green-fg);
+}
+
+.bt-badge-rejected {
+  background: var(--bt-red-bg);
+  color: var(--bt-red-fg);
+}
+
+/* ── HI badge (RENDERING.md: identity mark, not a state signal —
+   except the tampered variant, which IS a proven-bad state) ────── */
+.bt-hi {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bt-green-bg);
+  color: var(--bt-green-fg);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px 2px 4px;
+  border-radius: 3px;
+  font-weight: 500;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.bt-hi.bt-hi-tampered {
+  background: var(--bt-red-bg);
+  color: var(--bt-red-fg);
+}
+
+/* ── Integrity-state banners (RENDERING.md Integrity States) ─────── */
+.bt-state-verified   { border-left-color: var(--bt-green-fg); background: var(--bt-green-bg); color: var(--bt-green-fg); }
+.bt-state-changed     { border-left-color: var(--bt-amber-fg); background: var(--bt-amber-bg); color: var(--bt-amber-fg); }
+.bt-state-unreachable { border-left-color: var(--bt-neutral-fg); background: var(--bt-neutral-bg); color: var(--bt-neutral-fg); }
+.bt-state-tampered    { border-left-color: var(--bt-red-fg); background: var(--bt-red-bg); color: var(--bt-red-fg); font-weight: 500; }
+.bt-state-unverified  { border-left-color: var(--bt-neutral-fg); background: var(--bt-neutral-bg); color: var(--bt-neutral-fg); }
+
+/* ── Record card ────────────────────────────────────────── */
+.bt-record {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.bt-record-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 12px;
+  color: var(--bt-muted);
+  margin-top: 6px;
+}
+
+.bt-record-meta span + span::before {
+  content: '·';
+  margin-right: 0.5rem;
+}
+
+.bt-record-standard {
+  font-size: 13px;
+  color: var(--bt-ink);
+  margin-top: 6px;
+}
+
+.bt-record-links {
+  margin-top: 0.6rem;
+  display: flex;
+  gap: 1rem;
+  font-size: 13px;
+}
+
+/* ── Evidence view ──────────────────────────────────────── */
+pre.bt-evidence {
+  background: var(--bt-paper);
+  border: 0.5px solid var(--bt-border);
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+/* ── Queue item ─────────────────────────────────────────── */
+.bt-queue-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.bt-queue-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ── Forms ──────────────────────────────────────────────── */
+.bt-form-group { margin-bottom: 1.25rem; }
+
+.bt-label-field {
+  display: block;
+  font-size: 13px;
+  color: var(--bt-muted);
+  margin-bottom: 6px;
+}
+
+.bt-input,
+.bt-select,
+.bt-textarea,
+/* Django's default form widget rendering ({{ form.field }}) carries no
+   class — style it structurally within .bt-form-group instead of
+   requiring every form in forms.py to set widget attrs. Keeps forms.py
+   untouched (field names/validation are the contract; CSS is not). */
+.bt-form-group input[type="text"],
+.bt-form-group input[type="url"],
+.bt-form-group input[type="password"],
+.bt-form-group input[type="number"],
+.bt-form-group select,
+.bt-form-group textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 0.5px solid var(--bt-border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: Georgia, 'Times New Roman', serif;
+  background: var(--bt-paper);
+  color: var(--bt-ink);
+  outline: none;
+  appearance: none;
+}
+
+.bt-input:focus,
+.bt-select:focus,
+.bt-textarea:focus,
+.bt-form-group input:focus,
+.bt-form-group select:focus,
+.bt-form-group textarea:focus {
+  border-color: var(--bt-ink);
+  box-shadow: 0 0 0 2px rgba(28,27,26,0.1);
+}
+
+.bt-textarea { min-height: 100px; resize: vertical; }
+
+.bt-form-group input[type="checkbox"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.bt-field-hint {
+  font-size: 12px;
+  color: var(--bt-muted);
+  margin-top: 4px;
+}
+
+.bt-field-error,
+.errorlist,
+.bt-form-group .errorlist {
+  font-size: 12px;
+  color: var(--bt-red-fg);
+  margin-top: 4px;
+  list-style: none;
+}
+
+/* ── Buttons ────────────────────────────────────────────── */
+.bt-btn-primary {
+  background: var(--bt-ink);
+  color: var(--bt-paper);
+  border: none;
+  padding: 9px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: Georgia, 'Times New Roman', serif;
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.bt-btn-primary:hover { background: #333230; }
+
+.bt-btn-secondary {
+  background: transparent;
+  color: var(--bt-ink);
+  border: 0.5px solid var(--bt-ink);
+  padding: 9px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: Georgia, 'Times New Roman', serif;
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.bt-btn-secondary:hover { background: var(--bt-warm); }
+
+.bt-btn-sm {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.bt-btn-danger {
+  background: var(--bt-red-bg);
+  color: var(--bt-red-fg);
+  border: 0.5px solid var(--bt-red-fg);
+  padding: 9px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: Georgia, serif;
+  cursor: pointer;
+}
+
+/* ── Divider ────────────────────────────────────────────── */
+.bt-divider {
+  border: none;
+  border-top: 0.5px solid var(--bt-border);
+  margin: 1.5rem 0;
+}
+
+/* ── Empty state ────────────────────────────────────────── */
+.bt-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--bt-muted);
+}
+
+.bt-empty-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--bt-ink);
+  margin-bottom: 0.5rem;
+}
+
+/* ── Pagination ─────────────────────────────────────────── */
+.bt-pagination {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  font-size: 13px;
+}
+
+/* ── Footer ─────────────────────────────────────────────── */
+.bt-footer {
+  border-top: 0.5px solid var(--bt-border);
+  padding: 1.5rem 2rem;
+  text-align: center;
+  font-size: 12px;
+  color: var(--bt-muted);
+  margin-top: 3rem;
+}
+
+.bt-footer a { color: var(--bt-muted); }

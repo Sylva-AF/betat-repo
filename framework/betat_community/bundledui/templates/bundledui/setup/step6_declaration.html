@@ -1,0 +1,39 @@
+{% extends "bundledui/setup/base_setup.html" %}
+{% block step_title %}Declaration{% endblock %}
+{% block content %}
+<p class="wz-step-label">Step 6 — Declaration</p>
+<h1 class="wz-title">Operator declaration</h1>
+<p class="wz-desc">
+  Before your community goes live, read and accept the following declaration.
+  Your contact email allows Betat staff to reach you if needed.
+</p>
+{% if error %}<div class="wz-error">{{ error }}</div>{% endif %}
+<form method="post" action="{% url 'bundledui-setup-6' %}">
+  {% csrf_token %}
+  <div class="wz-group">
+    <div style="background:var(--bt-warm);border-left:3px solid var(--bt-ink);
+                border-radius:0 6px 6px 0;padding:1rem;font-size:13px;
+                line-height:1.7;color:var(--bt-ink);margin-bottom:1rem">
+      "{{ declaration }}"
+    </div>
+    <label class="wz-check-label">
+      <input type="radio" name="declaration_accepted" value="yes"
+             {% if setup.declaration_accepted %}checked{% endif %} required>
+      <span>I accept this declaration</span>
+    </label>
+  </div>
+  <hr class="wz-divider">
+  <div class="wz-group">
+    <label class="wz-label" for="operator_email">Contact email</label>
+    <input class="wz-input" type="email" id="operator_email" name="operator_email"
+           value="{{ setup.operator_email|default:'' }}"
+           placeholder="you@example.org" required>
+    <p class="wz-hint">Personal contact email. Betat staff may use this to
+      reach you. Not shown publicly.</p>
+  </div>
+  <div class="wz-actions">
+    <a href="{% url 'bundledui-setup-5' %}" class="wz-btn-back">← Back</a>
+    <button type="submit" class="wz-btn-primary">Continue →</button>
+  </div>
+</form>
+{% endblock %}

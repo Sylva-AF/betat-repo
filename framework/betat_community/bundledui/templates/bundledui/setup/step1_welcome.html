@@ -1,0 +1,30 @@
+{% extends "bundledui/setup/base_setup.html" %}
+{% block step_title %}Welcome{% endblock %}
+{% block content %}
+<p class="wz-step-label">Getting started</p>
+<h1 class="wz-title">Set up your Betat community</h1>
+<p class="wz-desc">
+  This wizard will configure your community instance in a few steps.
+  You will declare your community's identity, what it verifies, and
+  how members authenticate — the same decisions the Betat protocol
+  requires every community to make once.
+</p>
+<p class="wz-desc">
+  At the end, your instance will be ready for members to enroll,
+  submit content, and receive verified provenance records.
+</p>
+<p class="wz-desc">What you will need:</p>
+<div class="wz-done-list" style="margin-top:0">
+  <div class="wz-done-item"><div class="wz-done-dot"></div><span>A domain name you control (e.g. archive.example.org)</span></div>
+  <div class="wz-done-item"><div class="wz-done-dot"></div><span>A name and description for your community</span></div>
+  <div class="wz-done-item"><div class="wz-done-dot"></div><span>The URI where your records will be published</span></div>
+  <div class="wz-done-item"><div class="wz-done-dot"></div><span>A contact email address</span></div>
+</div>
+<div class="wz-actions">
+  <span></span>
+  <form method="post" action="{% url 'bundledui-setup-1' %}">
+    {% csrf_token %}
+    <button type="submit" class="wz-btn-primary">Begin →</button>
+  </form>
+</div>
+{% endblock %}

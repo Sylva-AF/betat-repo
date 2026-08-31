@@ -1,0 +1,47 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  {% if not configured %}
+  <div class="bt-banner">
+    Not configured yet — run <code>betat init</code> to declare this community's identity.
+  </div>
+  {% else %}
+  <div class="bt-banner bt-banner-success">
+    Running as <strong>{{ community.name }}</strong> ({{ community.id }})
+  </div>
+  {% endif %}
+
+  <p class="bt-label">Community</p>
+  <h1 class="bt-h1">Your Betat community is running</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    The honest distance between "it runs" and "it is production-ready."
+  </p>
+
+  <div>
+    {% for item in checklist %}
+    <div class="bt-card bt-card-accent {% if item.done %}bt-done{% endif %}">
+      <span class="bt-badge {% if item.done %}bt-badge-done{% else %}bt-badge-outstanding{% endif %}">
+        {% if item.done %}Complete{% else %}Outstanding{% endif %}
+      </span>
+      <h2 class="bt-h2">{{ item.label }}</h2>
+      <p class="bt-body">{{ item.detail }}</p>
+      {% if item.docs %}
+      <a href="{{ item.docs }}" target="_blank" rel="noopener"
+         style="font-size:13px;color:var(--bt-muted);margin-top:6px;display:inline-block;
+                text-decoration:none;border-bottom:1px solid var(--bt-border)">
+        Documentation ↗
+      </a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <p style="margin-top:1.5rem">
+    <a href="{% url 'bundledui-records' %}" class="bt-btn-secondary">View public records →</a>
+  </p>
+
+</div>
+{% endblock %}

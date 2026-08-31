@@ -68,11 +68,52 @@ def _valid_record_data(**overrides):
     return data
 
 
-# --- not configured -----------------------------------------------------
+# --- installer (Phase 1) --------------------------------------------------
+# BetatConfiguredMiddleware redirects every community-facing page to the
+# installer until a CommunityConfig exists (TODO 07 amendment) — this
+# supersedes the old "render an inline not-configured banner behind a
+# broken nav" behavior these views used to have.
 
-def test_enroll_page_shows_not_configured_when_no_config(client):
+def test_enroll_page_redirects_to_installer_when_no_config(client):
     response = client.get(reverse('bundledui-enroll'))
-    assert response.status_code == 503
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-install')
+
+
+def test_landing_redirects_to_installer_when_no_config(client):
+    response = client.get(reverse('bundledui-landing'))
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-install')
+
+
+def test_installer_shown_when_not_configured(client):
+    response = client.get(reverse('bundledui-install'))
+    assert response.status_code == 200
+    assert b'Begin setup' in response.content
+
+
+def test_installer_has_no_nav(client):
+    response = client.get(reverse('bundledui-install'))
+    assert b'bt-nav' not in response.content
+
+
+def test_installer_redirects_to_landing_once_configured(client):
+    _config()
+    response = client.get(reverse('bundledui-install'))
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-landing')
+
+
+def test_admin_exempt_from_installer_redirect(client):
+    response = client.get('/admin/login/')
+    assert response.status_code == 200
+
+
+def test_api_exempt_from_installer_redirect(client):
+    # The public API's own "not configured" semantics (BLUEPRINT §06
+    # Decision Log) predate this gate and must not be intercepted by it.
+    response = client.get(reverse('betat-info'))
+    assert response.status_code == 404
 
 
 # --- enroll / submit -----------------------------------------------------
@@ -122,6 +163,7 @@ def test_submit_without_enrolling_redirects_to_enroll(client):
 # --- verifier login / queue -----------------------------------------------
 
 def test_verifier_login_rejects_non_staff(client):
+    _config()
     get_user_model().objects.create_user(username='plain', password='pw12345!')
     response = client.post(reverse('bundledui-verifier-login'), {'username': 'plain', 'password': 'pw12345!'})
     assert response.status_code == 200  # re-renders form, no redirect
@@ -129,6 +171,7 @@ def test_verifier_login_rejects_non_staff(client):
 
 
 def test_verifier_login_success_reaches_queue(client):
+    _config()
     get_user_model().objects.create_user(username='verifier', password='pw12345!', is_staff=True)
     response = client.post(reverse('bundledui-verifier-login'), {'username': 'verifier', 'password': 'pw12345!'})
     assert response.status_code == 302
@@ -136,6 +179,7 @@ def test_verifier_login_success_reaches_queue(client):
 
 
 def test_queue_requires_verifier_login(client):
+    _config()
     response = client.get(reverse('bundledui-queue'))
     assert response.status_code == 302
     assert response.url == reverse('bundledui-verifier-login')
@@ -236,13 +280,9 @@ def test_record_detail_shows_unreachable_state(client):
 
 
 # --- landing / readiness checklist (§08) ----------------------------------
-
-def test_landing_shows_not_configured(client):
-    response = client.get(reverse('bundledui-landing'))
-    assert response.status_code == 200
-    assert b'Not configured yet' in response.content
-    assert response.content.count(b'OUTSTANDING') >= 2  # provenance + auth items
-
+# landing_view's own "not configured" banner branch is no longer reachable
+# through normal navigation — the installer gate intercepts '/' first (see
+# test_landing_redirects_to_installer_when_no_config above).
 
 def test_landing_shows_configured_state(client):
     config = _config(auth_methods=['cryptographic_signature'])

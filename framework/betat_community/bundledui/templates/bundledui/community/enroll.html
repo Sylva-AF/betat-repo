@@ -1,0 +1,74 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Enroll{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Enrollment</p>
+  <h1 class="bt-h1">Become a Provenancier</h1>
+  <p class="bt-body" style="margin-bottom:0.5rem">
+    Enroll once to get a submission token. Your identity is verified by this
+    community before you can submit content for the first time.
+  </p>
+  {% if community.hi_standard %}
+  <p class="bt-body" style="margin-bottom:1.5rem">Community standard: {{ community.hi_standard }}</p>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.method.id_for_label }}">{{ form.method.label }}</label>
+      {{ form.method }}
+      {{ form.method.errors }}
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.identity.id_for_label }}">{{ form.identity.label }}</label>
+      {{ form.identity }}
+      {{ form.identity.errors }}
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.display_name.id_for_label }}">{{ form.display_name.label }}</label>
+      {{ form.display_name }}
+      <p class="bt-field-hint">Pseudonymous enrollment is permitted — what matters
+        is that a human identity is behind it.</p>
+      {{ form.display_name.errors }}
+    </div>
+
+    <hr class="bt-divider">
+
+    <h2 class="bt-h2" style="margin-bottom:0.75rem">If enrolling via community peer vouching</h2>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.vouchers.id_for_label }}">{{ form.vouchers.label }}</label>
+      {{ form.vouchers }}
+      {{ form.vouchers.errors }}
+    </div>
+
+    <h2 class="bt-h2" style="margin-bottom:0.25rem">If enrolling via cryptographic signature</h2>
+    <p class="bt-field-hint" style="margin-bottom:0.75rem">Sign your own public key with your private key as proof of possession.</p>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.public_key.id_for_label }}">{{ form.public_key.label }}</label>
+      {{ form.public_key }}
+      {{ form.public_key.errors }}
+    </div>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.signature.id_for_label }}">{{ form.signature.label }}</label>
+      {{ form.signature }}
+      {{ form.signature.errors }}
+    </div>
+
+    <h2 class="bt-h2" style="margin-bottom:0.25rem">If enrolling via institutional endorsement</h2>
+    <p class="bt-field-hint" style="margin-bottom:0.75rem">Signature above is your institution's signature over your identity string.</p>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.institution_id.id_for_label }}">{{ form.institution_id.label }}</label>
+      {{ form.institution_id }}
+      {{ form.institution_id.errors }}
+    </div>
+
+    <button type="submit" class="bt-btn-primary">Request enrollment</button>
+  </form>
+
+</div>
+{% endblock %}

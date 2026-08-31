@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Betat setup — {% block step_title %}{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bt-ink:    #1C1B1A;
+      --bt-paper:  #FBFAF7;
+      --bt-warm:   #E8E4DB;
+      --bt-muted:  #6B6863;
+      --bt-border: #D4D0C8;
+      --bt-green:  #3B6D11;
+      --bt-amber:  #854F0B;
+      --bt-red-bg: #FCEBEB;
+      --bt-red-fg: #A32D2D;
+    }
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background: var(--bt-warm);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem 1rem 4rem;
+    }
+    /* Header */
+    .wz-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+    .wz-brand {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--bt-muted);
+      letter-spacing: 0.02em;
+    }
+    /* Progress */
+    .wz-progress {
+      width: 100%;
+      max-width: 480px;
+      margin-bottom: 2rem;
+    }
+    .wz-progress-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--bt-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .wz-progress-bar {
+      height: 3px;
+      background: var(--bt-border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .wz-progress-fill {
+      height: 100%;
+      background: var(--bt-ink);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+      width: {% block progress_pct %}0{% endblock %}%;
+    }
+    /* Card */
+    .wz-card {
+      background: var(--bt-paper);
+      border: 0.5px solid var(--bt-border);
+      border-radius: 10px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+    }
+    .wz-step-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--bt-muted);
+      margin-bottom: 0.4rem;
+    }
+    .wz-title {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--bt-ink);
+      margin-bottom: 0.5rem;
+    }
+    .wz-desc {
+      font-size: 14px;
+      color: var(--bt-muted);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+    /* Error banner */
+    .wz-error {
+      background: var(--bt-red-bg);
+      border-left: 3px solid var(--bt-red-fg);
+      color: var(--bt-red-fg);
+      border-radius: 0 6px 6px 0;
+      padding: 0.75rem 1rem;
+      font-size: 13px;
+      margin-bottom: 1.25rem;
+    }
+    /* Form */
+    .wz-group { margin-bottom: 1.25rem; }
+    .wz-label {
+      display: block;
+      font-size: 13px;
+      color: var(--bt-muted);
+      margin-bottom: 6px;
+    }
+    .wz-input, .wz-select, .wz-textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 0.5px solid var(--bt-border);
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: Georgia, serif;
+      background: var(--bt-paper);
+      color: var(--bt-ink);
+      outline: none;
+    }
+    .wz-input:focus, .wz-select:focus, .wz-textarea:focus {
+      border-color: var(--bt-ink);
+      box-shadow: 0 0 0 2px rgba(28,27,26,0.1);
+    }
+    .wz-hint {
+      font-size: 12px;
+      color: var(--bt-muted);
+      margin-top: 4px;
+    }
+    .wz-textarea { min-height: 80px; resize: vertical; }
+    /* Checkbox */
+    .wz-check-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--bt-ink);
+      line-height: 1.6;
+    }
+    .wz-check-label input { margin-top: 3px; flex-shrink: 0; }
+    /* Checkboxes list */
+    .wz-checks { display: flex; flex-direction: column; gap: 0.75rem; }
+    .wz-check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 14px;
+      color: var(--bt-ink);
+    }
+    /* Divider */
+    .wz-divider {
+      border: none;
+      border-top: 0.5px solid var(--bt-border);
+      margin: 1.5rem 0;
+    }
+    /* Buttons */
+    .wz-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.5rem;
+      gap: 1rem;
+    }
+    .wz-btn-primary {
+      background: var(--bt-ink);
+      color: var(--bt-paper);
+      border: none;
+      padding: 10px 28px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: Georgia, serif;
+      cursor: pointer;
+    }
+    .wz-btn-primary:hover { background: #333230; }
+    .wz-btn-back {
+      font-size: 13px;
+      color: var(--bt-muted);
+      text-decoration: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-family: Georgia, serif;
+      padding: 0;
+    }
+    .wz-btn-back:hover { color: var(--bt-ink); }
+    /* Review table */
+    .wz-review { display: flex; flex-direction: column; gap: 0.75rem; }
+    .wz-review-row {
+      display: flex;
+      gap: 1rem;
+      font-size: 14px;
+      border-bottom: 0.5px solid var(--bt-border);
+      padding-bottom: 0.6rem;
+    }
+    .wz-review-key {
+      width: 160px;
+      flex-shrink: 0;
+      color: var(--bt-muted);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding-top: 2px;
+    }
+    .wz-review-val { color: var(--bt-ink); word-break: break-all; }
+    /* Done checkmarks */
+    .wz-done-list { display: flex; flex-direction: column; gap: 0.6rem; margin: 1.5rem 0; }
+    .wz-done-item { display: flex; align-items: center; gap: 0.75rem; font-size: 14px; color: var(--bt-muted); }
+    .wz-done-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bt-green); flex-shrink: 0; }
+    code {
+      font-family: 'Courier New', monospace;
+      background: rgba(28,27,26,0.08);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 0.875em;
+    }
+    .wz-cmd {
+      background: var(--bt-ink);
+      color: var(--bt-paper);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      margin: 0.4rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wz-header">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="11" fill="#FBFAF7"/>
+    <circle cx="10.8" cy="12" r="9.9" fill="#1C1B1A"/>
+    <circle cx="10.4" cy="12" r="8.9" fill="#FBFAF7"/>
+    <circle cx="5.5" cy="12" r="2.2" fill="none" stroke="#1C1B1A" stroke-width="0.8"/>
+    <text x="5.5" y="12.4" font-family="Georgia,serif" font-size="2.2"
+          fill="#1C1B1A" text-anchor="middle" font-weight="600">HI</text>
+  </svg>
+  <span class="wz-brand">Betat — community setup</span>
+</div>
+
+{% if step and total_steps and step <= total_steps %}
+<div class="wz-progress">
+  <div class="wz-progress-label">
+    <span>Step {{ step }} of {{ total_steps }}</span>
+    <span>{{ step_title }}</span>
+  </div>
+  <div class="wz-progress-bar">
+    <div class="wz-progress-fill"></div>
+  </div>
+</div>
+{% endif %}
+
+<div class="wz-card">
+  {% block content %}{% endblock %}
+</div>
+
+<script>
+  // Set progress bar width from step/total after render
+  (function(){
+    var fill = document.querySelector('.wz-progress-fill');
+    if (fill) {
+      var step  = parseInt('{{ step|default:0 }}');
+      var total = parseInt('{{ total_steps|default:7 }}');
+      if (total > 0) fill.style.width = Math.round((step / total) * 100) + '%';
+    }
+  }());
+</script>
+
+</body>
+</html>

@@ -8,6 +8,14 @@ nav_order: 7
 
 Every endpoint speaks plain JSON over HTTPS — no special client needed. Reading is always public and unauthenticated; writing requires the stated token, sent as `Authorization: Token <token>`. Every error uses the same shape: `{"error": {"code": "...", "message": "..."}}`.
 
+**Running locally?** Every example below uses `https://your-community.example` as a stand-in for your actual deployed community. During development, `betat runserver` (or `manage.py runserver`) serves on `http://127.0.0.1:8000` by default — swap the domain for that, and drop `https://` for `http://`. For example, the `/betat/info` call further down becomes:
+
+```bash
+curl http://127.0.0.1:8000/betat/info
+```
+
+Same substitution applies to every endpoint on this page.
+
 ## `POST /betat/enroll` — become a Provenancier
 
 Public. `method` must be on the protocol list *and* enabled by this community (`betat init --auth-method`). Returns a token — save it, it's how you submit.

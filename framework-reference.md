@@ -11,5 +11,6 @@ Runnable documentation for the `betat-community` package (`framework/` in this r
 - **[CLI Commands](framework-cli.html)** — `betat init`, `runserver`, `check`, `announce`, `export`
 - **[API Endpoints](framework-api.html)** — the full `/betat/` surface: enroll, submit, queue, review, info, records, changes
 - **[Store Functions](framework-store.html)** — the Python `store.py` module, for anyone extending the framework in-process
+- **[Production Guide](framework-production.html)** — going from the SQLite seed install to a real PostgreSQL deployment
 
 Install first: `pip install -e "./framework[dev]"` from the repo root (see [COMMUNITY_FRAMEWORK.md](COMMUNITY_FRAMEWORK.md) → What an Operator Gets).

@@ -1,0 +1,33 @@
+<div class="bt-card">
+  <div class="bt-record">
+    <h2 class="bt-h2">{{ record.content.title|default:"(untitled)" }}</h2>
+    <span class="bt-hi {% if record.tampered %}bt-hi-tampered{% endif %}"
+          title="{% if record.tampered %}Failed integrity validation{% else %}Human Intelligence — verified by this community{% endif %}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="11" fill="#FBFAF7" stroke="{% if record.tampered %}#A32D2D{% else %}#3B6D11{% endif %}" stroke-width="0.5"/>
+        <circle cx="10.8" cy="12" r="9.9" fill="{% if record.tampered %}#A32D2D{% else %}#3B6D11{% endif %}"/>
+        <circle cx="10.4" cy="12" r="8.9" fill="#FBFAF7"/>
+      </svg>
+      {% if record.tampered %}Tampered{% else %}HI{% endif %}
+    </span>
+  </div>
+
+  {% if not record.tampered %}
+  <p class="bt-record-standard">
+    Standard: {{ record.declaration.custom_addition|default:"human-originated, community-verified" }}
+  </p>
+  {% endif %}
+
+  <div class="bt-record-meta">
+    <span>{{ record.content_type_display }}</span>
+    <span>in {{ record.language_display }}</span>
+    <span>by {{ record.provenancier.display_name|default:record.provenancier.identity }}</span>
+    <span>Verified by {{ record.community.name }} — {{ record.verification.method }}, {{ record.verification.verification_timestamp|slice:":10" }}</span>
+    <span>Recorded {{ record.timestamp|slice:":10" }}</span>
+  </div>
+
+  <div class="bt-record-links">
+    <a href="{{ record.content.location }}" target="_blank" rel="noopener">Source ↗</a>
+    <a href="{% url 'bundledui-record-detail' record.record_id %}">View full provenance record</a>
+  </div>
+</div>

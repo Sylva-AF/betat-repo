@@ -16,9 +16,9 @@
 | 07 | Bundled minimal UI | [todos/07-bundled-ui.md](todos/07-bundled-ui.md) | Consumption Model, Layer 2 | done |
 | 08 | Post-install seed website | [todos/08-seed-website.md](todos/08-seed-website.md) | The post-install seed website | done |
 | 09 | Discoverability: announce & export | [todos/09-discoverability.md](todos/09-discoverability.md) | announce / export | done |
-| 10 | Acceptance test (the 7 steps) | [todos/10-acceptance-test.md](todos/10-acceptance-test.md) | Minimal Working Community | in progress |
+| 10 | Acceptance test (the 7 steps) | [todos/10-acceptance-test.md](todos/10-acceptance-test.md) | Minimal Working Community | done |
 | 11 | Documentation site | [todos/11-docs-site.md](todos/11-docs-site.md) | Documentation Standard | in progress |
-| 12 | Packaging & production guide | [todos/12-packaging.md](todos/12-packaging.md) | Design Goal 4; storage engines | not started |
+| 12 | Packaging & production guide | [todos/12-packaging.md](todos/12-packaging.md) | Design Goal 4; storage engines | in progress |
 
 Build order: 01 → 02 → 05 → 03 → 04 → 06 → 10 (first acceptance pass) → 07 → 08 → 09 → 11 → 12.
 The store (05) comes early because everything writes to it; the acceptance test (10) runs as soon as

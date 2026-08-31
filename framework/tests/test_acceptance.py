@@ -8,14 +8,19 @@ reader discovers and reads it.
 Dual-DB (BLUEPRINT §10 acceptance criteria: "all seven ALSO pass against
 PostgreSQL"): this suite's logic is engine-agnostic — it never assumes
 SQLite except in the one explicitly-gated assertion below, which checks
-against `connection.vendor` and skips with a clear reason otherwise. What
-this suite CANNOT do yet is actually run against PostgreSQL: settings.py's
-DATABASES hardcodes `ENGINE: sqlite3` (`BETAT_DB` only overrides the
-SQLite filename), and PostgreSQL's append-only enforcement (role
-INSERT/SELECT-only, UPDATE/DELETE revoked) doesn't exist yet — both are
-§12's deliverable ("PostgreSQL migration path"), not this section's. Once
-§12 lands, this same file should pass unmodified when run with
-BETAT_DB pointed at a real Postgres instance.
+against `connection.vendor` and skips with a clear reason otherwise. §12
+settled how this actually ships: `settings.py` reads `BETAT_DB` directly
+(via `dj_database_url`) for both engines — no separate settings module,
+no code change to go from SQLite to PostgreSQL, just the env var. This
+suite is run against both as the dual-DB ship gate before a release
+(DISTRIBUTION.md pre-release checklist): point `BETAT_DB` at a real
+PostgreSQL instance and re-run `pytest tests/`. What §12 did NOT ship is
+PostgreSQL's role-based append-only enforcement as migration code — that's
+documented `psql` steps for the operator (framework-production.md), not
+something this repo can test against a live two-role Postgres in CI. The
+SQLite-guard-trigger assertion below is therefore a permanent skip on
+PostgreSQL by design, not a gap; everything else in this file must pass on
+both engines.
 """
 from unittest.mock import patch
 

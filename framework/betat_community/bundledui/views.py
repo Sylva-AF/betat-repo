@@ -24,12 +24,16 @@ the seed implementation, not solved by this section.
 """
 import json
 
+import django
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.db import connection
 from django.shortcuts import redirect, render
 from rest_framework.authtoken.models import Token
+
+import betat_community
+from betat_community.core.models import CommunityConfig
 
 from .api_client import ApiClient
 from .forms import EnrollForm, ReviewActionForm, SubmitForm
@@ -47,7 +51,7 @@ def enroll_view(request):
     api = ApiClient(server_name=request.get_host())
     status, info = api.get('/betat/info')
     if status != 200:
-        return render(request, 'bundledui/not_configured.html', status=503)
+        return render(request, 'bundledui/community/not_configured.html', status=503)
     auth_methods = info['auth_methods']
 
     if request.method == 'POST':
@@ -66,7 +70,7 @@ def enroll_view(request):
     else:
         form = EnrollForm(auth_methods=auth_methods)
 
-    return render(request, 'bundledui/enroll.html', {'form': form, 'community': info})
+    return render(request, 'bundledui/community/enroll.html', {'form': form, 'community': info})
 
 
 def submit_view(request):
@@ -87,7 +91,7 @@ def submit_view(request):
     else:
         form = SubmitForm()
 
-    return render(request, 'bundledui/submit.html', {
+    return render(request, 'bundledui/community/submit.html', {
         'form': form, 'identity': request.session.get('provenancier_identity'),
     })
 
@@ -104,7 +108,7 @@ def verifier_login_view(request):
                 return redirect('bundledui-queue')
     else:
         form = AuthenticationForm(request)
-    return render(request, 'bundledui/verifier_login.html', {'form': form})
+    return render(request, 'bundledui/community/verifier_login.html', {'form': form})
 
 
 def verifier_logout_view(request):
@@ -131,7 +135,7 @@ def queue_view(request):
         messages.error(request, 'Could not load the review queue.')
         pending = []
 
-    return render(request, 'bundledui/queue.html', {
+    return render(request, 'bundledui/community/queue.html', {
         'submissions': pending, 'form': ReviewActionForm(),
     })
 
@@ -166,7 +170,7 @@ def records_list_view(request):
         page = {'results': [], 'next': None, 'previous': None, 'count': 0}
 
     records = [_decorate_record(r) for r in page['results']]
-    return render(request, 'bundledui/records_list.html', {
+    return render(request, 'bundledui/community/records_list.html', {
         'count': page['count'],
         'records': records,
         # page.next/previous from DRF are absolute API URLs (wrong host
@@ -182,13 +186,13 @@ def records_list_view(request):
 def record_detail_view(request, record_id):
     status, record = ApiClient(server_name=request.get_host()).get(f'/betat/records/{record_id}')
     if status != 200:
-        return render(request, 'bundledui/record_unverified.html', {'record_id': record_id})
+        return render(request, 'bundledui/community/record_unverified.html', {'record_id': record_id})
 
     record_json = json.dumps(record, indent=2, sort_keys=True)
     record = _decorate_record(record)
     content_state = None if record['tampered'] else check_content_hash(record['content'])
 
-    return render(request, 'bundledui/record_detail.html', {
+    return render(request, 'bundledui/community/record_detail.html', {
         'record': record,
         'content_state': content_state,
         'record_json': record_json,
@@ -201,6 +205,19 @@ def record_detail_view(request, record_id):
 # free, for exactly this (see BLUEPRINT §11 Decision Log).
 DOCS_CLI = 'https://betat.org/framework-cli.html'
 DOCS_API = 'https://betat.org/framework-api.html'
+
+
+def install_view(request):
+    """Phase 1 installer screen (TODO 07 amendment). BetatConfiguredMiddleware
+    redirects every other community-facing page here until a CommunityConfig
+    exists; this view's own redirect-when-configured check is what makes
+    /community/install unreachable again once setup completes."""
+    if CommunityConfig.objects.exists():
+        return redirect('bundledui-landing')
+    return render(request, 'bundledui/installer/install.html', {
+        'version': getattr(betat_community, '__version__', '0.1.0'),
+        'django_version': django.get_version(),
+    })
 
 
 def landing_view(request):
@@ -235,7 +252,7 @@ def landing_view(request):
         },
     ]
 
-    return render(request, 'bundledui/landing.html', {
+    return render(request, 'bundledui/community/landing.html', {
         'configured': configured,
         'community': info if configured else None,
         'checklist': checklist,

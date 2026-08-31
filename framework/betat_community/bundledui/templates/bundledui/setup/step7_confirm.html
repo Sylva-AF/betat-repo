@@ -1,0 +1,56 @@
+{% extends "bundledui/setup/base_setup.html" %}
+{% block step_title %}Confirm{% endblock %}
+{% block content %}
+<p class="wz-step-label">Step 7 — Confirm</p>
+<h1 class="wz-title">Review your setup</h1>
+<p class="wz-desc">
+  Check everything below before confirming. This writes your community's
+  permanent configuration — it cannot be changed through this wizard.
+</p>
+{% if error %}<div class="wz-error">{{ error }}</div>{% endif %}
+<div class="wz-review">
+  <div class="wz-review-row">
+    <span class="wz-review-key">Community id</span>
+    <span class="wz-review-val">{{ setup.community_id }}</span>
+  </div>
+  <div class="wz-review-row">
+    <span class="wz-review-key">Name</span>
+    <span class="wz-review-val">{{ setup.name }}</span>
+  </div>
+  <div class="wz-review-row">
+    <span class="wz-review-key">Domain</span>
+    <span class="wz-review-val">{{ setup.domain }}</span>
+  </div>
+  <div class="wz-review-row">
+    <span class="wz-review-key">Content type</span>
+    <span class="wz-review-val">{{ setup.content_type }}</span>
+  </div>
+  <div class="wz-review-row">
+    <span class="wz-review-key">HI standard</span>
+    <span class="wz-review-val">{{ setup.hi_standard }}</span>
+  </div>
+  <div class="wz-review-row">
+    <span class="wz-review-key">Store URI</span>
+    <span class="wz-review-val">{{ setup.store_uri }}</span>
+  </div>
+  <div class="wz-review-row">
+    <span class="wz-review-key">Auth methods</span>
+    <span class="wz-review-val">{{ auth_methods_display }}</span>
+  </div>
+  <div class="wz-review-row">
+    <span class="wz-review-key">Contact email</span>
+    <span class="wz-review-val">{{ setup.operator_email }}</span>
+  </div>
+  <div class="wz-review-row">
+    <span class="wz-review-key">Declaration</span>
+    <span class="wz-review-val" style="color:var(--bt-green)">Accepted ✓</span>
+  </div>
+</div>
+<div class="wz-actions" style="margin-top:2rem">
+  <a href="{% url 'bundledui-setup-6' %}" class="wz-btn-back">← Back</a>
+  <form method="post" action="{% url 'bundledui-setup-7' %}">
+    {% csrf_token %}
+    <button type="submit" class="wz-btn-primary">Confirm and go live →</button>
+  </form>
+</div>
+{% endblock %}

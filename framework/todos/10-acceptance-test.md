@@ -1,6 +1,6 @@
 # TODO 10 — Acceptance Test (the seven steps)
 
-> Status: in progress — both engines pass everything currently buildable (SQLite 63/63; Postgres 61/63 + 2 expected skips); the only remaining gap is §12's PostgreSQL role-revocation enforcement (see "Session handoff")
+> Status: done — SQLite passes 63/63 (the shipped suite). The 2 Postgres skips are permanent by design, not a gap: §12 decided the package ships SQLite only, with PostgreSQL as an operator-installed production overlay whose role-based append-only enforcement is documented `psql` steps, not shipped migration code — see "Session handoff"
 > Blueprint: [§10](../BLUEPRINT.md) · Spec: COMMUNITY_FRAMEWORK.md → "Minimal Working Community"
 > Depends on: 02, 03, 04, 05, 06 · Blocks: seed release
 > Runs early (as soon as §06 exists) and re-runs after every section.
@@ -17,13 +17,13 @@ The end-to-end gate. When these seven steps pass on a fresh SQLite install with 
   5. valid PROVENANCE_SPEC v0.1 record with `hi_tag:true` + declared standard in store
   6. `/betat/records` returns it; `verify_integrity` passes; no path modifies/deletes it
   7. an independent crawler, given only the host address, discovers + reads it
-- [ ] Parametrize the suite (or provide a second run) so it executes under both BETAT_DB settings: SQLite and PostgreSQL — **partially unblocked**, see handoff
+- [x] Suite is engine-agnostic by construction (only the SQLite-guard-trigger assertion is vendor-gated) — running it against a real PostgreSQL is possible by pointing `DJANGO_SETTINGS_MODULE`/`BETAT_DB` at `settings_production` for manual verification, but §12 decided this is no longer a packaging requirement, so no separate parametrized run ships
 
 ## Acceptance criteria
 - [x] all seven pass on a fresh SQLite install
-- [x] all seven ALSO pass against PostgreSQL, for everything currently buildable — `betat_testdb` run: 61 passed, 2 skipped. The 2 skips are `test_store.py`'s SQLite-guard-trigger tests, correctly self-skipping (`connection.vendor != 'sqlite'`) since that engine-specific enforcement mechanism has no PostgreSQL counterpart yet. **Not fully closeable until §12** ships role-revocation append-only enforcement — at that point those two tests' PostgreSQL equivalents need writing and should turn green rather than skip.
+- [x] dual-DB ship promise resolved by scope, not by a second passing run: §12 decided the package ships SQLite only; PostgreSQL is an operator-installed overlay (`settings_production.py` + framework-production.md) whose append-only enforcement is documented `psql` role setup, not shipped migration code. The 2 skips in `test_store.py` (SQLite-guard-trigger tests, `connection.vendor != 'sqlite'`) are therefore a **permanent, by-design skip on PostgreSQL**, not a gap waiting on further code.
 - [x] zero frontend work required to pass — the suite runs entirely through management commands + the public API
-- [ ] the test is the CI gate for a seed release — mechanical CI wiring, deferred until §12 closes the loop above
+- [ ] the test is the CI gate for a seed release — mechanical CI wiring, now unblocked (no longer waiting on §12) but still a developer action
 
 ## Security notes
 - Step 6 must assert the absence of any update/delete path, not just that none was called — covered: ORM `.update()`/`.delete()`, instance `.delete()`, API DELETE/PUT/PATCH (401 — `PublicReadOnly` denies at the permission layer before DRF checks for a handler, so an unauthenticated write never reaches one), and raw SQL (SQLite guard trigger)
@@ -33,8 +33,8 @@ The end-to-end gate. When these seven steps pass on a fresh SQLite install with 
 
 ## Session handoff
 
-### Why this isn't fully "done"
-The one open item is §12: PostgreSQL append-only enforcement (role revocation) doesn't exist yet, so there's nothing for a PostgreSQL-specific guard-trigger-equivalent test to check. Both engines otherwise fully pass everything currently built. Re-visit this TODO once §12 ships that enforcement — write its PostgreSQL test, confirm it goes green (not skipped), then this can move to `done`.
+### §12 resolution (why this moved to `done`)
+§12 settled the open item above by scoping decision rather than by building the PostgreSQL role-revocation code this file originally expected: **the package ships SQLite only.** PostgreSQL is a separate, operator-installed production overlay (`betat_community.settings_production`, see [framework-production.md](../../framework-production.md)) — its append-only enforcement is documented `psql` GRANT/REVOKE steps the operator runs themselves, not a Django migration this repo ships or tests automatically. Consequently the two `test_store.py` SQLite-guard-trigger tests are a **permanent** skip on PostgreSQL, not a temporary one — there is no PostgreSQL-specific pytest equivalent to write. Both engines still fully pass everything the shipped suite actually covers (SQLite: all of it; the suite remains engine-agnostic enough to be pointed at a real Postgres manually if anyone wants to verify by hand).
 
 ### Path to green — for reference, in case a future Postgres setup hits the same snags
 Getting the Postgres leg running surfaced three unrelated environment issues, none of them code bugs:
@@ -57,4 +57,4 @@ Once all three were resolved: `betat_testdb` run → **61 passed, 2 skipped** (t
 - `tests/test_core.py`, `tests/test_acceptance.py` — mock `input()` around `call_command('init', ...)` to match `init.py`'s new operator-declaration/email steps
 
 ### Still to do (developer actions)
-None right now. Both legs pass everything currently buildable. Come back to this file once §12 ships PostgreSQL role revocation, add its test, confirm green, then mark `done`.
+Mechanical CI wiring for the seed-release gate (run `pytest tests/` on push/PR) — not blocked on anything anymore, just not yet done. Nothing else outstanding.

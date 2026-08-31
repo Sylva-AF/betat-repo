@@ -1,0 +1,66 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Submit{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  {% if identity %}
+  <p class="bt-body" style="margin-bottom:1rem">Submitting as <strong>{{ identity }}</strong></p>
+  {% endif %}
+
+  <p class="bt-label">Submit content</p>
+  <h1 class="bt-h1">Submit for verification</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    Betat does not host content — provide a persistent locator and hash.
+    A verifier will review your submission before it becomes a provenance record.
+  </p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+      {{ form.title }}
+      {{ form.title.errors }}
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.location.id_for_label }}">{{ form.location.label }}</label>
+      {{ form.location }}
+      <p class="bt-field-hint">Where the content already lives — Betat never hosts it. Use the most
+        permanent locator available: DOI, IPFS hash, or stable URI.</p>
+      {{ form.location.errors }}
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.content_hash.id_for_label }}">{{ form.content_hash.label }}</label>
+      {{ form.content_hash }}
+      <p class="bt-field-hint">Computed from the content at submission time. Detects changes at the source.</p>
+      {{ form.content_hash.errors }}
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.language.id_for_label }}">{{ form.language.label }}</label>
+      {{ form.language }}
+      {{ form.language.errors }}
+    </div>
+
+    <hr class="bt-divider">
+
+    <div class="bt-form-group">
+      <label style="display:flex;align-items:flex-start;gap:0.75rem;cursor:pointer">
+        {{ form.declaration_accepted }}
+        <span style="font-size:13px;color:var(--bt-ink);line-height:1.5">
+          I declare that this content was originated by a human being. I am that human
+          being, or I am an authorized representative. I understand that this declaration
+          is permanent, public, and append-only — it cannot be removed or modified.
+        </span>
+      </label>
+      {{ form.declaration_accepted.errors }}
+    </div>
+
+    <button type="submit" class="bt-btn-primary">Submit for review</button>
+  </form>
+
+</div>
+{% endblock %}

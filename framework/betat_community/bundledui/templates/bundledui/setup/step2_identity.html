@@ -1,0 +1,40 @@
+{% extends "bundledui/setup/base_setup.html" %}
+{% block step_title %}Community identity{% endblock %}
+{% block content %}
+<p class="wz-step-label">Step 2 — Identity</p>
+<h1 class="wz-title">Community identity</h1>
+<p class="wz-desc">
+  Your community id is its permanent, globally unique identifier.
+  It must be a domain name you control — this is what makes it
+  uniquely yours, verifiable by anyone.
+</p>
+{% if error %}<div class="wz-error">{{ error }}</div>{% endif %}
+<form method="post" action="{% url 'bundledui-setup-2' %}">
+  {% csrf_token %}
+  <div class="wz-group">
+    <label class="wz-label" for="community_id">Community id</label>
+    <input class="wz-input" type="text" id="community_id" name="community_id"
+           value="{{ setup.community_id|default:'' }}"
+           placeholder="archive.example.org" required>
+    <p class="wz-hint">A fully-qualified domain name (FQDN) you own and control.
+      Lowercase. This becomes your permanent id — it never changes.</p>
+  </div>
+  <div class="wz-group">
+    <label class="wz-label" for="name">Community name</label>
+    <input class="wz-input" type="text" id="name" name="name"
+           value="{{ setup.name|default:'' }}"
+           placeholder="Open Science Archive" required>
+  </div>
+  <div class="wz-group">
+    <label class="wz-label" for="domain">Knowledge domain</label>
+    <input class="wz-input" type="text" id="domain" name="domain"
+           value="{{ setup.domain|default:'' }}"
+           placeholder="Ecological field observations" required>
+    <p class="wz-hint">The area of knowledge this community governs and verifies.</p>
+  </div>
+  <div class="wz-actions">
+    <a href="{% url 'bundledui-setup-1' %}" class="wz-btn-back">← Back</a>
+    <button type="submit" class="wz-btn-primary">Continue →</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Verifier sign in{% endblock %}
+
+{% block content %}
+<div class="bt-page" style="max-width:480px">
+
+  <p class="bt-label">Verifier access</p>
+  <h1 class="bt-h1">Sign in to review</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    The review queue is restricted to staff members of this community.
+  </p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.username.id_for_label }}">Username</label>
+      {{ form.username }}
+    </div>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.password.id_for_label }}">Password</label>
+      {{ form.password }}
+    </div>
+    {% if form.non_field_errors %}
+    <div class="bt-banner bt-banner-error" style="margin-bottom:1rem">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+    <button type="submit" class="bt-btn-primary">Sign in</button>
+  </form>
+
+</div>
+{% endblock %}

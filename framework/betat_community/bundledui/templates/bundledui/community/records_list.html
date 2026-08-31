@@ -1,0 +1,30 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Records{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Provenance records{% if count %}&nbsp;·&nbsp;{{ count }} record{{ count|pluralize }}{% endif %}</p>
+  <h1 class="bt-h1">Records</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    All verified human-originated content in this community. Free to read, forever.
+  </p>
+
+  {% if records %}
+  {% for record in records %}
+    {% include "bundledui/community/_record_card.html" %}
+  {% endfor %}
+
+  <div class="bt-pagination">
+    {% if has_previous %}<a href="?page={{ previous_page }}" class="bt-btn-secondary bt-btn-sm">← Previous</a>{% endif %}
+    {% if has_next %}<a href="?page={{ next_page }}" class="bt-btn-secondary bt-btn-sm">Next →</a>{% endif %}
+  </div>
+  {% else %}
+  <div class="bt-empty">
+    <p class="bt-empty-title">No records yet</p>
+    <p class="bt-body">Accepted submissions will appear here.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

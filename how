@@ -1,0 +1,190 @@
+[33mcommit b3fa35193e57ab26a5024a3dc4491225602d528c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sun Aug 23 22:04:42 2026 -0600
+
+    Documentation pages bug fixed, fixed stall navs
+
+[33mcommit dd4c07fe86136e4264b54aaa6b1109599e58af57[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sun Aug 23 21:51:20 2026 -0600
+
+    Documentation pages bug fixed
+
+[33mcommit a6fd54492ff097d5c4509139520d470ff2819560[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sun Aug 23 21:43:10 2026 -0600
+
+    Add documentation pages for the framework
+    
+      - New pages on the betat.org site under -For Builders- explaining
+        every CLI command, every API endpoint, and the Python store
+        functions, each with a real example and its real output.
+      - The framework's first-run checklist now links to these real pages
+        instead of a placeholder link.
+      - Added a rule to CONTRIBUTING.md: new features must come with an
+        updated doc page.
+
+[33mcommit 66507e816fd846a390b1d1eebf5264141f6894a6[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sun Aug 23 21:13:50 2026 -0600
+
+    Add community discoverability commands: announce and export
+    
+      - betat export creates a backup file of all records that can be
+        checked for tampering (each record's hash is recalculated and must
+        match).
+      - betat announce sends a message to the central registry saying new
+        records are ready to be checked. The registry doesn't have a real
+        address to send this to yet, so this is configurable and does
+        nothing until an operator sets it up.
+      - Reviewers can optionally turn on auto-announce, so it fires
+        automatically every time a submission is accepted.
+      - Tests pass on both database types (SQLite and PostgreSQL).
+
+[33mcommit 95bf8c78e0ea54b0eba1fff4ee5a74c825f130d5[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sun Aug 23 20:38:35 2026 -0600
+
+      Complete TODO 07 (bundled UI) and TODO 08 (readiness landing page)
+    
+      Add bundledui: enroll/submit/review-queue/records views consuming the
+      public API only via an internal test.Client wrapper, RENDERING.md's
+      binding integrity states (tampered/verified/changed/unreachable), and
+      one hand-written stylesheet. Add the first-run landing page with a
+      live readiness checklist. Full suite green on SQLite and PostgreSQL.
+      TODO 08 stays open pending §11 for real per-item doc links.
+
+[33mcommit ed8c0ad37868bcad18a522042f5d842a2961a4ff[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sun Aug 23 19:59:00 2026 -0600
+
+     TODO 10: add acceptance test; fix EnrollView method-enablement gap
+    
+      Details in todos/10-acceptance-test.md. Passes on SQLite and PostgreSQL;
+      stays in progress pending §12 (PostgreSQL append-only enforcement).
+
+[33mcommit d08f7a220119ae0d88847042c89fb072d1204bb5[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sun Aug 23 14:50:09 2026 -0600
+
+      Complete TODO 06: federation endpoints
+    
+      Add /betat/info, /betat/records, /betat/records/{id}, /betat/changes —
+      the community's public, unauthenticated read surface. Introduces
+      common/permissions.py and common/serializers.py (planned since §0,
+      built now that a second reader exists). Records serialize via
+      ProvenanceRecord.to_dict() directly to avoid a second field-by-field
+      copy of the spec drifting from the model. Full test suite passes.
+
+[33mcommit 220c2d4dc09e8329b6f18ed68f5d0162430a57b8[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sun Aug 23 14:39:51 2026 -0600
+
+      Complete TODO 04: submission & verification workflow
+    
+      Add Submission model, /betat/submit (authenticated Provenancier),
+      /betat/queue and /betat/review/{id} (staff verifier), and
+      build_record() composing PROVENANCE_SPEC v0.1 records on accept.
+      Verifiers are Django staff users, not a new identity model (see
+      BLUEPRINT §4 Decision Log). Full test suite passes.
+
+[33mcommit 1abc653cdbae8600cc343630298cd88c028af5c0[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sun Aug 23 12:32:16 2026 -0600
+
+      Complete TODO 03: authentication plugins & floor
+    
+      Add CryptoKeyAuth and InstitutionalAuth (Ed25519-backed) alongside
+      PeerVouchAuth, the protocol-list floor (floor.py + system check),
+      POST /betat/enroll, and CommunityConfig.peer_vouch_threshold/
+      trusted_institutions. Fixes a pre-existing tuple-return bug in
+      PeerVouchAuth.enroll(). 37/37 tests pass, manage.py check clean.
+
+[33mcommit 5d0c9b4c94540948994ad64365f250ab68a8a787[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sat Aug 22 15:28:32 2026 -0600
+
+      Add append-only provenance store (TODO 05)
+    
+      ProvenanceRecord model mirrors PROVENANCE_SPEC v0.1 exactly; nested
+      spec objects stored as JSONField, correction_of/disputes as
+      self-referential FKs enforcing referential integrity. Canonicalization
+      lives in betat_community/common/hashing.py (shared with federation/
+      workflow per the API-structure decision), not store/ — moved there
+      from an initial store/canonical.py placement.
+    
+      append() is the sole write path: validates hi_tag, required fields,
+      and the content.type == community.content_type rule; always
+      recomputes record_id server-side. Three independent append-only
+      layers: no update()/delete() in store.py, AppendOnlyQuerySet +
+      Model.delete() raise NotSupportedError at the ORM level, and SQLite
+      guard triggers (0002_guard_triggers migration) block raw UPDATE/DELETE
+      at the DB level.
+    
+      22/22 tests pass (test_core.py + test_store.py).
+
+[33mcommit 1bb08ef6e142ce432a689a3d5502f39408247303[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sat Aug 22 12:28:45 2026 -0600
+
+      Add CommunityConfig model & betat init command (TODO 02)
+    
+      CommunityConfig with FQDN id validation, the fixed PROVENANCE_SPEC
+      content_type enum, and strengthen-only hi_standard enforcement.
+      Single-config-per-install enforced in clean(), not just documented.
+      init supports guided prompts or full flag-driven/scripted use.
+      auth_methods protocol-list membership deferred to §03 (communityauth
+      owns that floor rule) — validated here only as non-empty strings.
+    
+      6/6 tests pass in framework/tests/test_core.py.
+
+[33mcommit 7ab65a19df0ad204ef91af444b0b649cec363d8e[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Sat Aug 22 12:14:28 2026 -0600
+
+      Scaffold framework project & betat CLI (TODO 01)
+      Add cli.py dispatcher, stub init/announce/export management commands,
+      BETAT_DB/BETAT_SECRET_KEY env wiring in settings.py, tests/ package,
+      .gitignore, and package README. Verified: pip install -e, betat --help,
+      manage.py check, and pytest all pass clean.
+
+[33mcommit 22860b90dfacd72912fadd6be872f13d8afb540f[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Fri Aug 21 21:36:13 2026 -0600
+
+    Scaffold framework: Django project + six app skeletons; blueprint dual-DB amendments
+
+[33mcommit 79146594f87fb2001782345f930df7e185409dba[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Mon Aug 3 20:56:05 2026 -0600
+
+    Add giscus comments via Just the Docs custom footer
+
+[33mcommit 3ed001729293a5caafc3cadf3829119ff48fb84a[m
+Author: Ateafac <ateafacs@gmail.com>
+Date:   Mon Aug 3 17:35:58 2026 -0600
+
+    Add full document set, Jekyll site, and framework build plan
+
+[33mcommit c7249973f4cd6aa9dabb88b55ea234143ab8a538[m
+Merge: cb448ef e4c8c69
+Author: Sylva-AF <sylateaf@gmail.com>
+Date:   Sun Jul 5 21:27:44 2026 -0600
+
+    Merge pull request #1 from Sylva-AF/Update-readme
+    
+    Enhance README with project details and guidelines
+
+[33mcommit e4c8c695f2f407bf7f999c53011c3a4d003f3d90[m
+Author: Sylva-AF <sylateaf@gmail.com>
+Date:   Sun Jul 5 21:22:36 2026 -0600
+
+    Enhance README with project details and guidelines
+    
+    Expanded the README to provide detailed information about the Betat project, its principles, guidelines, and the roles of Provenanciers and Contributors.
+
+[33mcommit cb448ef33f057542ff1d7e1b42f7195742689e96[m
+Author: Sylva-AF <sylateaf@gmail.com>
+Date:   Sun Jul 5 21:13:54 2026 -0600
+
+    Initial commit

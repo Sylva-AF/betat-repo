@@ -77,3 +77,21 @@ def test_model_rejects_empty_auth_methods():
     )
     with pytest.raises(ValidationError):
         config.full_clean()
+
+
+def test_init_writes_manage_py(tmp_path, monkeypatch):
+    # A pip-only install ships no manage.py (see §12); init must write one
+    # to a fresh working directory, not just no-op past an existing file.
+    monkeypatch.chdir(tmp_path)
+    _init()
+    manage_py = tmp_path / "manage.py"
+    assert manage_py.exists()
+    assert "execute_from_command_line" in manage_py.read_text()
+
+
+def test_init_does_not_overwrite_existing_manage_py(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    manage_py = tmp_path / "manage.py"
+    manage_py.write_text("# custom, do not touch\n")
+    _init()
+    assert manage_py.read_text() == "# custom, do not touch\n"
