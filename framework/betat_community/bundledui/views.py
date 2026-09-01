@@ -17,10 +17,13 @@ that part genuinely is API-shaped.
 
 Session use: a Provenancier's enroll token lives in request.session after
 a successful enroll — that session *is* "being logged in" for this seed
-UI. There is no separate "log back in as an existing provenancier" flow;
-enrolled identities without unusable passwords (all of them, by §03
-design) have no browser-login path here. That's a known, honest gap for
-the seed implementation, not solved by this section.
+UI. `community_peer_vouching`/`institutional_endorsement` identities still
+have no separate "log back in" flow beyond that session — a known, honest
+gap for the seed implementation. `cryptographic_signature` identities
+enrolled via a passphrase (communityauth/passphrase.py) are the one
+exception: provenancier_login_view (BLUEPRINT §03 Decision Log, 2026-09)
+re-derives their key through POST /betat/login and restores the session,
+same ApiClient-only pattern as every other view here.
 """
 import json
 
@@ -33,6 +36,8 @@ from django.shortcuts import redirect, render
 from rest_framework.authtoken.models import Token
 
 import betat_community
+from betat_community.communityauth import crypto as communityauth_crypto
+from betat_community.communityauth import passphrase as passphrase_derivation
 from betat_community.core.models import CommunityConfig
 
 from .api_client import ApiClient
@@ -57,15 +62,31 @@ def enroll_view(request):
     if request.method == 'POST':
         form = EnrollForm(request.POST, auth_methods=auth_methods)
         if form.is_valid():
-            status, data = api.post('/betat/enroll', {
-                'method': form.cleaned_data['method'],
-                'applicant': form.applicant_payload(),
-            })
+            method = form.cleaned_data['method']
+            applicant = form.applicant_payload()
+
+            # Passphrase-assisted cryptographic_signature (BLUEPRINT §03
+            # Decision Log, 2026-09): only when no public_key/signature was
+            # pasted manually — that technical path is untouched.
+            passphrase = form.cleaned_data.get('passphrase', '').strip()
+            if method == 'cryptographic_signature' and passphrase and not applicant.get('public_key'):
+                if passphrase != form.cleaned_data.get('passphrase_confirm', '').strip():
+                    messages.error(request, 'Passphrases do not match.')
+                    return render(request, 'bundledui/community/enroll.html', {'form': form, 'community': info})
+                private_key_hex, public_key_hex = passphrase_derivation.derive_keypair(passphrase, info['id'])
+                applicant['public_key'] = public_key_hex
+                applicant['signature'] = communityauth_crypto.sign(private_key_hex, public_key_hex)
+
+            status, data = api.post('/betat/enroll', {'method': method, 'applicant': applicant})
             if status == 201:
                 request.session['provenancier_token'] = data['token']
                 request.session['provenancier_identity'] = data['identity']
                 messages.success(request, f"Enrolled as '{data['identity']}'. You can now submit a contribution.")
                 return redirect('bundledui-submit')
+            if status == 202:
+                request.session['peer_vouch_request_id'] = data['request_id']
+                messages.info(request, data['message'])
+                return redirect('bundledui-enroll')
             messages.error(request, data.get('error', {}).get('message', 'Enrollment failed.'))
     else:
         form = EnrollForm(auth_methods=auth_methods)
@@ -96,6 +117,32 @@ def submit_view(request):
     })
 
 
+def provenancier_login_view(request):
+    """Returning-provenancier login for passphrase-derived cryptographic_signature
+    identities only (BLUEPRINT §03 Decision Log, 2026-09 — closes half of §07's
+    "no returning-provenancier login flow" gap). A thin ApiClient consumer of
+    POST /betat/login — the actual re-derivation/comparison happens server-side
+    in CryptoKeyLoginView, keeping this view free of ORM shortcuts like every
+    other bundledui view. Peer-vouch/institutional provenanciers have no login
+    path here, unchanged from before."""
+    if request.method == 'POST':
+        identity = request.POST.get('identity', '').strip()
+        passphrase = request.POST.get('passphrase', '').strip()
+        if not identity or not passphrase:
+            messages.error(request, 'Identity and passphrase are required.')
+        else:
+            api = ApiClient(server_name=request.get_host())
+            status, data = api.post('/betat/login', {'identity': identity, 'passphrase': passphrase})
+            if status == 200:
+                request.session['provenancier_token'] = data['token']
+                request.session['provenancier_identity'] = data['identity']
+                messages.success(request, f"Welcome back, '{data['identity']}'.")
+                return redirect('bundledui-submit')
+            messages.error(request, data.get('error', {}).get('message', 'Login failed.'))
+
+    return render(request, 'bundledui/community/provenancier_login.html')
+
+
 def verifier_login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -109,6 +156,30 @@ def verifier_login_view(request):
     else:
         form = AuthenticationForm(request)
     return render(request, 'bundledui/community/verifier_login.html', {'form': form})
+
+
+def vouch_view(request, request_id):
+    """POST /community/vouch/<request_id> — an already-enrolled Provenancier
+    vouches for a pending community_peer_vouching request (BLUEPRINT §03
+    Decision Log, 2026-09). Reuses the same session token submit_view
+    already relies on; there is no separate provenancier login for
+    peer-vouch identities (only cryptographic_signature/passphrase
+    identities get provenancier_login_view above)."""
+    token = request.session.get('provenancier_token')
+    if not token:
+        messages.info(request, 'Enroll first — only an enrolled Provenancier can vouch.')
+        return redirect('bundledui-enroll')
+
+    if request.method == 'POST':
+        api = ApiClient(token=token, server_name=request.get_host())
+        status, data = api.post(f'/betat/vouch/{request_id}', {})
+        if status in (200, 201):
+            messages.success(request, data.get('message', 'Vouch recorded.'))
+        else:
+            messages.error(request, data.get('error', {}).get('message', 'Vouch failed.'))
+        return redirect('bundledui-records')
+
+    return render(request, 'bundledui/community/vouch.html', {'request_id': request_id})
 
 
 def verifier_logout_view(request):

@@ -18,13 +18,15 @@ from django.contrib import admin
 from django.urls import include, path
 
 from betat_community.bundledui.views import landing_view
-from betat_community.communityauth.api.views import EnrollView
+from betat_community.communityauth.api.views import CryptoKeyLoginView, EnrollView, VouchView
 from betat_community.federation.api.views import ChangesView, InfoView, RecordDetailView, RecordsView
 from betat_community.workflow.api.views import QueueView, ReviewView, SubmitView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('betat/enroll', EnrollView.as_view(), name='betat-enroll'),
+    path('betat/login', CryptoKeyLoginView.as_view(), name='betat-login'),
+    path('betat/vouch/<int:request_id>', VouchView.as_view(), name='betat-vouch'),
     path('betat/submit', SubmitView.as_view(), name='betat-submit'),
     path('betat/queue', QueueView.as_view(), name='betat-queue'),
     path('betat/review/<int:submission_id>', ReviewView.as_view(), name='betat-review'),

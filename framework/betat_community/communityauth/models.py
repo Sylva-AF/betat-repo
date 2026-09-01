@@ -44,3 +44,23 @@ class Provenancier(models.Model):
 
     def __str__(self):
         return self.identity
+
+
+class PeerVouchRequest(models.Model):
+    """A `community_peer_vouching` enrollment awaiting enough vouches
+    (BLUEPRINT §03 Decision Log, 2026-09). Created with zero vouches by
+    `PeerVouchAuth.enroll()`; `PeerVouchAuth.add_vouch()` accumulates
+    `vouchers` (a list of voucher identity strings — the same shape later
+    persisted into `Provenancier.verification_material['vouchers']`) and
+    promotes to a full `Provenancier` once the community's
+    `CommunityConfig.peer_vouch_threshold` is met. Not itself a Provenancier
+    — never counts as an enrolled identity until promoted."""
+
+    identity = models.CharField(max_length=500, unique=True)
+    display_name = models.CharField(max_length=200, blank=True, default='')
+    vouchers = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'PeerVouchRequest({self.identity}, {len(self.vouchers)} vouches)'

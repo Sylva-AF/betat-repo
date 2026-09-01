@@ -1,0 +1,33 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Log in{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Returning Provenancier</p>
+  <h1 class="bt-h1">Log in with your passphrase</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    Only for identities enrolled via a passphrase-derived cryptographic signature.
+    Your passphrase is used once to confirm your identity and is never stored.
+  </p>
+
+  <div class="bt-card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="identity">Identity / handle</label>
+      <input class="bt-input" type="text" id="identity" name="identity" required>
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="passphrase">Passphrase</label>
+      <input class="bt-input" type="password" id="passphrase" name="passphrase" required>
+    </div>
+
+    <button type="submit" class="bt-btn-primary">Log in</button>
+  </form>
+  </div>
+
+</div>
+{% endblock %}

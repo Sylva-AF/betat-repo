@@ -44,7 +44,73 @@ curl -X POST https://your-community.example/betat/enroll \
 }
 ```
 
-`applicant` fields differ per method: `community_peer_vouching` needs `identity` + `vouchers` (existing members' identities); `cryptographic_signature` needs `public_key` + a self-signed `signature` (proof of possession — sign your own public key); `institutional_endorsement` needs `institution_id` + the institution's `signature` over your identity.
+`applicant` fields differ per method: `community_peer_vouching` needs just `identity` (+ optional `display_name`) — see "Two-phase peer-vouch enrollment" below, vouches are no longer supplied by the applicant; `cryptographic_signature` needs `public_key` + a self-signed `signature` (proof of possession — sign your own public key), *or* a `passphrase` instead of both (see below); `institutional_endorsement` needs `institution_id` + the institution's `signature` over your identity.
+
+### Generating a keypair for `cryptographic_signature`
+
+**Option A — passphrase (no technical step, recommended for most applicants).** The bundled UI's enroll form accepts a `passphrase` field instead of a pasted `public_key`/`signature`: the server derives a deterministic Ed25519 keypair from it (scrypt, salted per-community — the same passphrase yields a different key on every community) and self-signs the proof itself. The private key is never persisted; the passphrase is never resent on later submissions. This is a deliberate trade-off — the server sees the passphrase transiently at enroll and at login — documented in BLUEPRINT.md §03 Decision Log (2026-09). A returning applicant re-authenticates with the same passphrase via `POST /betat/login` (below) rather than re-enrolling.
+
+**Option B — bring your own keypair (technical path, unchanged).** The private key never touches the server. Generate it yourself from any Python shell with `cryptography` installed:
+
+```bash
+python -c "
+from betat_community.communityauth import crypto
+private_key, public_key = crypto.generate_keypair()
+signature = crypto.sign(private_key, public_key)   # self-sign the public key as proof of possession
+print('public_key:', public_key)
+print('signature: ', signature)
+print('private_key (keep this secret — needed again to authenticate later):', private_key)
+"
+```
+
+Use `public_key` and `signature` as the enroll fields above. Keep `private_key` — `authenticate()` calls (for future actions requiring re-proof) need it to sign a fresh message each time; it's never sent during enrollment itself.
+
+## `POST /betat/login` — re-authenticate a passphrase-based identity
+
+Public. Only for `cryptographic_signature` identities enrolled via Option A above (a passphrase) — identities enrolled by pasting a manual `public_key`/`signature` have nothing to re-derive and get no benefit from this endpoint. Re-derives the keypair from the passphrase and compares the public key against what was recorded at enrollment; returns the same token issued then.
+
+```bash
+curl -X POST https://your-community.example/betat/login \
+  -H "Content-Type: application/json" \
+  -d '{"identity": "did:key:z6MkfExample", "passphrase": "your passphrase"}'
+```
+
+```json
+{
+  "identity": "did:key:z6MkfExample",
+  "identity_type": "cryptographic_key",
+  "authentication_method": "cryptographic_signature",
+  "display_name": "Ada Lovelace",
+  "token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"
+}
+```
+
+`401` with `{"error": {"code": "invalid_credentials", ...}}` for a wrong identity or passphrase — deliberately the same error either way, so a failed guess can't reveal whether an identity exists.
+
+## Two-phase peer-vouch enrollment
+
+`community_peer_vouching` no longer accepts a `vouchers` list from the applicant — that used to trust whoever the applicant *named*, with no confirmation those people had actually agreed. Enrolling now opens a pending request and returns **202**, not 201:
+
+```json
+{
+  "status": "pending_vouches",
+  "request_id": 4,
+  "vouch_count": 0,
+  "vouches_needed": 2,
+  "message": "Enrollment request received. 2 existing enrolled members must vouch for you..."
+}
+```
+
+## `POST /betat/vouch/{request_id}` — vouch for a pending peer-vouch request
+
+Requires a Provenancier token — the vouch is attributed to whoever is actually authenticated, not merely named by the applicant. Idempotent (vouching twice does nothing extra) and rejects vouching for your own request.
+
+```bash
+curl -X POST https://your-community.example/betat/vouch/4 \
+  -H "Authorization: Token <voucher-token>"
+```
+
+Returns the same `pending_vouches`/200 shape as above while below threshold, or the enroll-style `identity`/`token`/201 shape once the last required vouch lands and the applicant is promoted to a full Provenancier.
 
 ## `POST /betat/submit` — submit a contribution
 

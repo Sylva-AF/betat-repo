@@ -1,0 +1,98 @@
+{# bundledui/templates/bundledui/community/contribute_pending.html
+   Rendered when the user has a pending enrollment request.
+   Injected into contribute.html as a third phase alongside enroll/submit.
+   See: framework/todos/07-bundled-ui.md
+#}
+
+{# In contribute.html, add this block alongside the enroll/submit phases:
+   {% elif phase == 'pending' %}
+   {% include "bundledui/community/contribute_pending.html" %}
+#}
+
+<div class="bt-page">
+  <p class="bt-label">Enrollment in progress</p>
+  <h1 class="bt-h1">Your request has been received</h1>
+
+  {% if enroll_status == 'pending_admin' %}
+  {# Bootstrap or insufficient Provenanciers — admin approves #}
+  <p class="bt-body" style="margin-bottom:2rem">
+    {{ enroll_message }}
+  </p>
+  <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem">
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <div class="milestone-dot" style="background:var(--bt-green)"></div>
+      <span style="color:var(--bt-ink)">Request submitted</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <div style="width:8px;height:8px;border-radius:50%;
+                  border:1.5px solid var(--bt-border);flex-shrink:0"></div>
+      <span style="color:var(--bt-muted)">Awaiting administrator approval</span>
+    </div>
+  </div>
+  <p class="bt-body">
+    The community administrator has been notified. You will be able to
+    submit content once your enrollment is approved.
+  </p>
+
+  {% else %}
+  {# Pending vouches — show vouch progress #}
+  <p class="bt-body" style="margin-bottom:2rem">
+    {{ enroll_message }}
+  </p>
+  <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem">
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <div class="milestone-dot" style="background:var(--bt-green)"></div>
+      <span style="color:var(--bt-ink)">Request submitted</span>
+    </div>
+
+    {% if vouch_count >= 1 %}
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <div class="milestone-dot" style="background:var(--bt-green)"></div>
+      <span style="color:var(--bt-ink)">One community member has vouched for you</span>
+    </div>
+    {% else %}
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <div style="width:8px;height:8px;border-radius:50%;
+                  border:1.5px solid var(--bt-border);flex-shrink:0"></div>
+      <span style="color:var(--bt-muted)">Waiting for first vouch</span>
+    </div>
+    {% endif %}
+
+    {% if vouch_count >= 2 %}
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <div class="milestone-dot" style="background:var(--bt-green)"></div>
+      <span style="color:var(--bt-ink)">Two members have vouched — enrollment complete</span>
+    </div>
+    {% else %}
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <div style="width:8px;height:8px;border-radius:50%;
+                  border:1.5px solid var(--bt-border);flex-shrink:0"></div>
+      <span style="color:var(--bt-muted)">
+        {% if vouch_count == 1 %}One more vouch needed
+        {% else %}Two vouches needed{% endif %}
+      </span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if vouch_count < 2 %}
+  <div class="bt-banner">
+    Share your request ID with a community member and ask them to vouch
+    for your enrollment:
+    <br><br>
+    <strong>Request ID: {{ enroll_request_id }}</strong>
+    <br><br>
+    A community member can vouch by visiting
+    <strong>/community/vouch/{{ enroll_request_id }}/</strong>
+    after logging in with their enrollment token.
+  </div>
+  {% endif %}
+
+  {% endif %}
+
+  <p style="margin-top:2rem;font-size:13px;color:var(--bt-muted)">
+    While you wait, you can
+    <a href="{% url 'bundledui-records' %}"
+       style="color:var(--bt-muted)">browse existing records →</a>
+  </p>
+</div>

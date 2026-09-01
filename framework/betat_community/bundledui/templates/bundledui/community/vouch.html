@@ -1,0 +1,22 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Vouch{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Peer vouching</p>
+  <h1 class="bt-h1">Vouch for request #{{ request_id }}</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    Only vouch if you personally know this applicant is a real human being.
+    Your vouch is recorded against your own enrolled identity and cannot be undone.
+  </p>
+
+  <div class="bt-card">
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="bt-btn-primary">Confirm — I vouch for this applicant</button>
+  </form>
+  </div>
+
+</div>
+{% endblock %}

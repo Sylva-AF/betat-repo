@@ -23,7 +23,10 @@ class EnrollForm(forms.Form):
         label='Vouchers (comma-separated identities of existing members)', required=False,
         widget=forms.TextInput(attrs={'placeholder': 'alice@example.com, bob@example.com'}),
     )
-    # cryptographic_signature
+    # cryptographic_signature — either paste a public_key + signature
+    # directly (technical path, unchanged), or choose a passphrase and let
+    # the server derive + self-sign the keypair (BLUEPRINT §03 Decision
+    # Log, 2026-09 — for applicants who can't manage a keyfile).
     public_key = forms.CharField(
         label='Public key (hex)', required=False,
         widget=forms.TextInput(attrs={'placeholder': 'hex-encoded public key'}),
@@ -32,6 +35,13 @@ class EnrollForm(forms.Form):
         label='Signature (hex) — proof of possession, or institutional endorsement',
         required=False,
         widget=forms.TextInput(attrs={'placeholder': 'hex-encoded signature'}),
+    )
+    passphrase = forms.CharField(
+        label='Passphrase (alternative to pasting a public key/signature)',
+        required=False, widget=forms.PasswordInput(render_value=False),
+    )
+    passphrase_confirm = forms.CharField(
+        label='Confirm passphrase', required=False, widget=forms.PasswordInput(render_value=False),
     )
     # institutional_endorsement
     institution_id = forms.CharField(

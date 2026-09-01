@@ -31,7 +31,15 @@ Visit the Enroll page on your community's site. You will provide a
 display name and authenticate through your community's chosen method
 — peer vouching, a cryptographic key, or an institutional identity.
 Your community verifies that you are a real, known human before
-enrollment is complete.
+enrollment is complete. All three now work entirely through the web
+form. A cryptographic key can be set up with just a passphrase you
+choose and remember, like a password — no technical step required;
+you'll use that same passphrase to log back in later. (If your
+community's administrator instead asks you to generate and paste in
+your own key, that's a more technical alternative meant for applicants
+who prefer to hold their own key file directly.) If you enroll by peer
+vouching, your enrollment may not complete immediately — it finishes
+once enough existing members have vouched for you.
 
 **3. Submit your first record.**
 Once enrolled, you receive a submission token. Use it to submit
@@ -69,7 +77,9 @@ can be quietly removed or changed is not a record worth trusting.
 - Technical knowledge beyond using a web form
 
 Betat is designed so that the knowledge matters, not the technology.
-If you can fill out a web form, you can contribute to the record.
+If you can fill out a web form, you can contribute to the record —
+including with a cryptographic key, if you choose a passphrase rather
+than generating one yourself (see step 2).
 
 ---
 

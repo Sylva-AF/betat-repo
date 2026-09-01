@@ -59,6 +59,22 @@
       {{ form.signature }}
       {{ form.signature.errors }}
     </div>
+    <p class="bt-field-hint" style="margin-bottom:0.75rem">
+      No keypair yet? Choose a passphrase instead and leave the two fields above blank —
+      the community derives and self-signs a key from it for you. Remember it: you'll need
+      it again to <a href="{% url 'bundledui-provenancier-login' %}">log back in</a>.
+      It is never stored.
+    </p>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.passphrase.id_for_label }}">{{ form.passphrase.label }}</label>
+      {{ form.passphrase }}
+      {{ form.passphrase.errors }}
+    </div>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.passphrase_confirm.id_for_label }}">{{ form.passphrase_confirm.label }}</label>
+      {{ form.passphrase_confirm }}
+      {{ form.passphrase_confirm.errors }}
+    </div>
 
     <h2 class="bt-h2" style="margin-bottom:0.25rem">If enrolling via institutional endorsement</h2>
     <p class="bt-field-hint" style="margin-bottom:0.75rem">Signature above is your institution's signature over your identity string.</p>

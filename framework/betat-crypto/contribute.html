@@ -1,0 +1,186 @@
+{# bundledui/templates/bundledui/community/contribute.html
+   Single Contribute tab — state-aware.
+   Renders enroll form (phase=enroll) or submit form (phase=submit)
+   based on session state. Auth method fields rendered conditionally
+   from config.auth_methods — no crypto fields shown for peer_vouch.
+   See: framework/todos/07-bundled-ui.md
+#}
+{% extends "bundledui/community/base.html" %}
+{% block title %}Contribute{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+{% if phase == 'enroll' %}
+
+  {# ── ENROLL PHASE ──────────────────────────────────────────────── #}
+  <p class="bt-label">Enrollment</p>
+  <h1 class="bt-h1">Become a Provenancier</h1>
+
+  {% if auth_method == 'peer_vouch' %}
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    Tell us your name and request enrollment. Two members of this community
+    will vouch for you before your enrollment is complete. You do not need
+    any technical setup — just your name.
+  </p>
+  {% elif auth_method == 'crypto_key' %}
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    Choose a passphrase — like a password, but for signing your submissions.
+    Your passphrase generates a unique identity key in the background.
+    Remember it: you will need it each time you submit content.
+    If you forget it, you can re-enroll with a new passphrase.
+  </p>
+  {% elif auth_method == 'institutional' %}
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    Provide your institution ID. Your institution will verify your enrollment.
+  </p>
+  {% endif %}
+
+  {% if error %}
+  <div class="bt-banner bt-banner-error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="{% url 'bundledui-contribute' %}">
+    {% csrf_token %}
+    <input type="hidden" name="phase" value="enroll">
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="display_name">Your name</label>
+      <input class="bt-input" type="text" id="display_name" name="display_name"
+             placeholder="Your name or community pseudonym" required>
+      <p class="bt-field-hint">
+        Pseudonymous names are permitted — what matters is that the community
+        knows a real human is behind it.
+      </p>
+    </div>
+
+    {# crypto_key: passphrase fields — hidden for peer_vouch and institutional #}
+    {% if auth_method == 'crypto_key' %}
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="passphrase">Passphrase</label>
+      <input class="bt-input" type="password" id="passphrase" name="passphrase"
+             placeholder="At least 8 characters" autocomplete="new-password" required>
+      <p class="bt-field-hint">
+        This is your signing passphrase — not your login password.
+        Choose something memorable. It stays private: we never store it.
+      </p>
+    </div>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="passphrase_confirm">Confirm passphrase</label>
+      <input class="bt-input" type="password" id="passphrase_confirm"
+             name="passphrase_confirm" placeholder="Repeat your passphrase"
+             autocomplete="new-password" required>
+    </div>
+    {% endif %}
+
+    {# institutional: institution ID field #}
+    {% if auth_method == 'institutional' %}
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="institution_id">Institution ID</label>
+      <input class="bt-input" type="text" id="institution_id" name="institution_id"
+             placeholder="Your staff ID, email, or membership number" required>
+    </div>
+    {% endif %}
+
+    <button type="submit" class="bt-btn-primary">Request enrollment</button>
+  </form>
+
+{% else %}
+
+  {# ── SUBMIT PHASE ──────────────────────────────────────────────── #}
+  <p class="bt-label">Submit content</p>
+  <h1 class="bt-h1">Submit for verification</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    Betat does not host content — provide a permanent link and a fingerprint.
+    A verifier will review your submission before it becomes a provenance record.
+  </p>
+
+  {% if error %}
+  <div class="bt-banner bt-banner-error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="{% url 'bundledui-contribute' %}">
+    {% csrf_token %}
+    <input type="hidden" name="phase" value="submit">
+
+    {% if auth_method == 'crypto_key' %}
+    {# Passphrase needed to sign submission — shown first so user understands why #}
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="passphrase">Your passphrase</label>
+      <input class="bt-input" type="password" id="passphrase" name="passphrase"
+             placeholder="The passphrase you chose at enrollment"
+             autocomplete="current-password" required>
+      <p class="bt-field-hint">
+        Used to sign this submission. Never stored — only used for this request.
+      </p>
+    </div>
+    {% endif %}
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="title">
+        Title
+        <span style="color:var(--bt-muted);font-weight:400">(optional)</span>
+      </label>
+      <input class="bt-input" type="text" id="title" name="title"
+             placeholder="A short descriptive title for this content">
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="location">Permanent link</label>
+      <input class="bt-input" type="url" id="location" name="location"
+             placeholder="https://doi.org/10.xxxx/… or ipfs://… or stable URL"
+             required>
+      <p class="bt-field-hint">
+        Use the most permanent link available — a DOI, an IPFS address, or a
+        URL you control and will keep stable.
+      </p>
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="content_hash">Content fingerprint</label>
+      <input class="bt-input" type="text" id="content_hash" name="content_hash"
+             placeholder="SHA-256 hash of the content file (64 hex characters)"
+             required>
+      <p class="bt-field-hint">
+        A unique fingerprint of your content computed at submission time.
+        It detects if the content at the link changes after verification.
+        Your community administrator or the
+        <a href="https://betat.org/for-builders.html" target="_blank"
+           rel="noopener" style="color:var(--bt-muted)">documentation</a>
+        can help you generate this.
+      </p>
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="language">Language</label>
+      <input class="bt-input" type="text" id="language" name="language"
+             value="en" placeholder="en">
+    </div>
+
+    <hr class="bt-divider">
+
+    <div class="bt-form-group">
+      <label style="display:flex;align-items:flex-start;gap:0.75rem;cursor:pointer">
+        <input type="checkbox" name="declaration_accepted"
+               style="margin-top:3px;flex-shrink:0" required>
+        <span style="font-size:13px;color:var(--bt-ink);line-height:1.6">
+          I declare that this content was originated by a human being.
+          I am that human being, or I am an authorised representative.
+          I understand that this declaration is permanent, public, and
+          append-only — it cannot be removed or modified.
+        </span>
+      </label>
+    </div>
+
+    <button type="submit" class="bt-btn-primary">Submit for review</button>
+
+    <p style="margin-top:1rem;font-size:12px;color:var(--bt-muted)">
+      Not ready?
+      <a href="{% url 'bundledui-records' %}"
+         style="color:var(--bt-muted)">Browse records instead →</a>
+    </p>
+  </form>
+
+{% endif %}
+</div>
+{% endblock %}
