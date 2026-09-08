@@ -22,27 +22,43 @@
   </a>
 
   <a href="{% url 'bundledui-records' %}"
-     class="{% if request.resolver_match.url_name == 'bundledui-records' %}bt-active{% endif %}">
+     class="{% if request.resolver_match.url_name == 'bundledui-records' %}bt-active{% endif %}"
+     title="Browse the public, verified provenance record archive">
     Records
   </a>
   <a href="{% url 'bundledui-enroll' %}"
-     class="{% if request.resolver_match.url_name == 'bundledui-enroll' %}bt-active{% endif %}">
+     class="{% if request.resolver_match.url_name == 'bundledui-enroll' %}bt-active{% endif %}"
+     title="Become a verified contributor (Provenancier) to submit content">
     Enroll
   </a>
   <a href="{% url 'bundledui-submit' %}"
-     class="{% if request.resolver_match.url_name == 'bundledui-submit' %}bt-active{% endif %}">
-    Submit
+     class="{% if request.resolver_match.url_name == 'bundledui-submit' %}bt-active{% endif %}"
+     title="Submit content for community review — requires enrollment">
+    Submit Content
   </a>
   <a href="{% url 'bundledui-queue' %}"
-     class="{% if request.resolver_match.url_name == 'bundledui-queue' or request.resolver_match.url_name == 'bundledui-verifier-login' %}bt-active{% endif %}">
+     class="{% if request.resolver_match.url_name == 'bundledui-queue' or request.resolver_match.url_name == 'bundledui-verifier-login' %}bt-active{% endif %}"
+     title="Verifier review queue — requires a staff account">
     Review queue
   </a>
+
+  {% if request.session.provenancier_token %}
+  <a href="{% url 'bundledui-provenancier-logout' %}" class="bt-nav-cta"
+     title="Log out of your current enrollment session">
+    Log out{% if request.session.provenancier_identity %} ({{ request.session.provenancier_identity }}){% endif %}
+  </a>
+  {% else %}
+  <a href="{% url 'bundledui-provenancier-login' %}" class="bt-nav-cta"
+     title="Log back in with your existing enrollment">
+    Log in
+  </a>
+  {% endif %}
 </nav>
 
 {% if messages %}
-<div style="max-width:780px;margin:1rem auto;padding:0 1.5rem">
+<div class="bt-toast-wrap">
   {% for message in messages %}
-  <div class="bt-banner {% if message.tags == 'error' %}bt-banner-error{% elif message.tags == 'warning' %}bt-banner-warning{% elif message.tags == 'success' %}bt-banner-success{% endif %}">
+  <div class="bt-banner bt-toast {% if message.tags == 'error' %}bt-banner-error{% elif message.tags == 'warning' %}bt-banner-warning{% elif message.tags == 'success' %}bt-banner-success{% endif %}">
     {{ message }}
   </div>
   {% endfor %}

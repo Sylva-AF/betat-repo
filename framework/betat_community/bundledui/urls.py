@@ -28,6 +28,7 @@ urlpatterns = [
     path('setup/done', SetupDone.as_view(), name='bundledui-setup-done'),
     path('enroll', views.enroll_view, name='bundledui-enroll'),
     path('login', views.provenancier_login_view, name='bundledui-provenancier-login'),
+    path('logout', views.provenancier_logout_view, name='bundledui-provenancier-logout'),
     path('vouch/<int:request_id>', views.vouch_view, name='bundledui-vouch'),
     path('submit', views.submit_view, name='bundledui-submit'),
     path('queue', views.queue_view, name='bundledui-queue'),

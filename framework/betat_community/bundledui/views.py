@@ -57,6 +57,11 @@ def enroll_view(request):
     status, info = api.get('/betat/info')
     if status != 200:
         return render(request, 'bundledui/community/not_configured.html', status=503)
+
+    pending_id = request.session.get('peer_vouch_request_id')
+    if pending_id and request.method != 'POST':
+        return _render_peer_vouch_pending(request, api, pending_id)
+
     auth_methods = info['auth_methods']
 
     if request.method == 'POST':
@@ -85,13 +90,61 @@ def enroll_view(request):
                 return redirect('bundledui-submit')
             if status == 202:
                 request.session['peer_vouch_request_id'] = data['request_id']
-                messages.info(request, data['message'])
+                request.session['peer_vouch_identity'] = applicant['identity']
+                request.session['peer_vouch_display_name'] = applicant.get('display_name', '')
                 return redirect('bundledui-enroll')
             messages.error(request, data.get('error', {}).get('message', 'Enrollment failed.'))
     else:
         form = EnrollForm(auth_methods=auth_methods)
 
     return render(request, 'bundledui/community/enroll.html', {'form': form, 'community': info})
+
+
+def _render_peer_vouch_pending(request, api, request_id):
+    """A `community_peer_vouching` applicant returning to /community/enroll
+    with a request already in flight (BLUEPRINT §03 Decision Log, 2026-09
+    persistent-pending-state entry). Polls the existing, idempotent
+    POST /betat/enroll (same identity) to refresh progress — PeerVouchAuth
+    .enroll() already get_or_creates on identity, so no separate status
+    endpoint is needed. If a different session's vouch already crossed the
+    threshold, the poll comes back identity_taken with no token for this
+    session to claim — an honest, documented gap (see the Decision Log
+    entry), not silently hidden."""
+    identity = request.session.get('peer_vouch_identity')
+    display_name = request.session.get('peer_vouch_display_name', '')
+    poll_status, data = api.post('/betat/enroll', {
+        'method': 'community_peer_vouching',
+        'applicant': {'identity': identity, 'display_name': display_name},
+    })
+
+    if poll_status == 201:
+        # This poll itself crossed the threshold — same outcome as a
+        # fresh 201 in the POST branch above.
+        for key in ('peer_vouch_request_id', 'peer_vouch_identity', 'peer_vouch_display_name'):
+            request.session.pop(key, None)
+        request.session['provenancier_token'] = data['token']
+        request.session['provenancier_identity'] = data['identity']
+        messages.success(request, f"Enrolled as '{data['identity']}'. You can now submit a contribution.")
+        return redirect('bundledui-submit')
+
+    if poll_status == 202:
+        return render(request, 'bundledui/community/enroll_pending.html', {
+            'request_id': request_id,
+            'vouch_count': data['vouch_count'],
+            'vouches_needed': data['vouches_needed'],
+            'threshold': data['vouch_count'] + data['vouches_needed'],
+            'vouch_count_range': range(data['vouch_count']),
+            'vouches_needed_range': range(data['vouches_needed']),
+            'message': data['message'],
+            'promoted_elsewhere': False,
+        })
+
+    # 400 identity_taken (promoted via a different session) or any other
+    # error — this session has no token to offer either way.
+    return render(request, 'bundledui/community/enroll_pending.html', {
+        'request_id': request_id,
+        'promoted_elsewhere': True,
+    })
 
 
 def submit_view(request):
@@ -141,6 +194,17 @@ def provenancier_login_view(request):
             messages.error(request, data.get('error', {}).get('message', 'Login failed.'))
 
     return render(request, 'bundledui/community/provenancier_login.html')
+
+
+def provenancier_logout_view(request):
+    """Clears the Provenancier session (provenancier_token/identity) set by
+    either enroll_view or provenancier_login_view above. Mirrors
+    verifier_logout_view's plain-GET-link pattern below rather than
+    introducing a new convention."""
+    request.session.pop('provenancier_token', None)
+    request.session.pop('provenancier_identity', None)
+    messages.info(request, 'Logged out.')
+    return redirect('bundledui-landing')
 
 
 def verifier_login_view(request):

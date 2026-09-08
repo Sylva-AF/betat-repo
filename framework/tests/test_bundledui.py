@@ -160,6 +160,108 @@ def test_submit_without_enrolling_redirects_to_enroll(client):
     assert response.url == reverse('bundledui-enroll')
 
 
+def test_nav_shows_login_before_enrolling(client):
+    _config()
+    response = client.get(reverse('bundledui-records'))
+    assert b'Log in' in response.content
+    assert b'Log out' not in response.content
+
+
+def test_nav_shows_logout_after_enrolling(client):
+    _config(auth_methods=['cryptographic_signature'])
+    private_key, public_key = crypto.generate_keypair()
+    proof = crypto.sign(private_key, public_key)
+    client.post(reverse('bundledui-enroll'), {
+        'method': 'cryptographic_signature', 'identity': 'did:key:z6MkNav',
+        'display_name': '', 'public_key': public_key, 'signature': proof,
+    })
+
+    response = client.get(reverse('bundledui-records'))
+    assert b'Log out' in response.content
+    assert b'did:key:z6MkNav' in response.content
+
+
+def test_provenancier_logout_clears_session(client):
+    _config(auth_methods=['cryptographic_signature'])
+    private_key, public_key = crypto.generate_keypair()
+    proof = crypto.sign(private_key, public_key)
+    client.post(reverse('bundledui-enroll'), {
+        'method': 'cryptographic_signature', 'identity': 'did:key:z6MkOut',
+        'display_name': '', 'public_key': public_key, 'signature': proof,
+    })
+    assert client.session['provenancier_token']
+
+    response = client.get(reverse('bundledui-provenancier-logout'))
+    assert response.status_code == 302
+    assert 'provenancier_token' not in client.session
+
+
+# --- peer-vouch pending state (§03 Decision Log, 2026-09) -----------------
+
+def _peer_vouch_config():
+    return _config(auth_methods=['community_peer_vouching', 'cryptographic_signature'])
+
+
+def _start_peer_vouch_enrollment(client, identity, display_name=''):
+    response = client.post(reverse('bundledui-enroll'), {
+        'method': 'community_peer_vouching', 'identity': identity, 'display_name': display_name,
+    })
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-enroll')
+    return response
+
+
+def test_peer_vouch_enroll_shows_pending_progress_on_return(client):
+    _peer_vouch_config()
+    _start_peer_vouch_enrollment(client, 'alice', 'Alice')
+
+    response = client.get(reverse('bundledui-enroll'))
+    assert response.status_code == 200
+    assert b'Your request is in progress' in response.content
+    assert b'0 of 2 vouches received' in response.content
+
+
+def test_peer_vouch_pending_completes_when_polling_itself_crosses_threshold(client):
+    from betat_community.communityauth.models import PeerVouchRequest
+
+    _peer_vouch_config()
+    _start_peer_vouch_enrollment(client, 'dana', 'Dana')
+
+    # Simulate vouches having accumulated via a path that didn't also
+    # trigger add_vouch()'s own eager auto-promotion — exercises
+    # PeerVouchAuth.enroll()'s defensive `len(vouchers) >= threshold`
+    # branch via the applicant's own polling GET.
+    req = PeerVouchRequest.objects.get(identity='dana')
+    req.vouchers = ['voucher-1', 'voucher-2']
+    req.save(update_fields=['vouchers'])
+
+    response = client.get(reverse('bundledui-enroll'))
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-submit')
+    assert client.session['provenancier_token']
+    assert client.session['provenancier_identity'] == 'dana'
+    assert 'peer_vouch_request_id' not in client.session
+
+
+def test_peer_vouch_pending_shows_honest_gap_when_promoted_elsewhere(client):
+    from betat_community.communityauth.models import PeerVouchRequest
+    from betat_community.communityauth.plugins import PeerVouchAuth
+
+    config = _peer_vouch_config()
+    _start_peer_vouch_enrollment(client, 'carol', 'Carol')
+
+    req = PeerVouchRequest.objects.get(identity='carol')
+    plugin = PeerVouchAuth(config)
+    plugin.add_vouch(req.pk, 'voucher-1')
+    plugin.add_vouch(req.pk, 'voucher-2')  # crosses threshold — promotes + deletes req
+    assert not PeerVouchRequest.objects.filter(identity='carol').exists()
+
+    response = client.get(reverse('bundledui-enroll'))
+    assert response.status_code == 200
+    assert b'Your enrollment has been completed by your community' in response.content
+    assert 'provenancier_token' not in client.session
+
+
 # --- verifier login / queue -----------------------------------------------
 
 def test_verifier_login_rejects_non_staff(client):

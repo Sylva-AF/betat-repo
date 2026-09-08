@@ -84,6 +84,22 @@ a { color: var(--bt-ink); }
 .bt-nav a:hover       { color: var(--bt-paper); }
 .bt-nav a.bt-active   { color: var(--bt-paper); border-bottom-color: var(--bt-paper); }
 
+/* Account CTA (log in / log out) — visually set apart from section
+   navigation links: its own bordered pill at the end of the nav, not
+   another item in the row of section links. */
+.bt-nav a.bt-nav-cta {
+  margin-left: 0.75rem;
+  padding: 5px 14px;
+  border: 1px solid rgba(251,250,247,0.35);
+  border-radius: 6px;
+  color: var(--bt-paper);
+}
+
+.bt-nav a.bt-nav-cta:hover {
+  border-color: var(--bt-paper);
+  background: rgba(251,250,247,0.08);
+}
+
 /* ── Eclipse logo SVG (inline, reusable) ────────────────── */
 .bt-eclipse { display: inline-block; flex-shrink: 0; }
 
@@ -125,7 +141,7 @@ a { color: var(--bt-ink); }
 
 /* ── Banner ─────────────────────────────────────────────── */
 .bt-banner {
-  background: var(--bt-warm);
+  background: var(--bt-paper);
   border-left: 3px solid var(--bt-ink);
   border-radius: 0 6px 6px 0;
   padding: 0.75rem 1rem;
@@ -156,6 +172,43 @@ a { color: var(--bt-ink); }
   border-left-color: var(--bt-neutral-fg);
   background: var(--bt-neutral-bg);
   color: var(--bt-neutral-fg);
+}
+
+/* ── Toast-style flash messages (pure CSS, no JS) ──────────
+   Fixed near the top of the viewport, below the sticky nav, so
+   the message is visible immediately instead of requiring a
+   scroll. Fades in and auto-dismisses via a CSS animation only
+   — no timer, no JS. Paused on hover so a message being read
+   doesn't disappear mid-read. */
+.bt-toast-wrap {
+  position: fixed;
+  top: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  width: 100%;
+  max-width: 480px;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bt-toast {
+  margin-bottom: 0;
+  box-shadow: 0 4px 16px rgba(28,27,26,0.18);
+  animation: bt-toast-life 6s ease forwards;
+}
+
+.bt-toast:hover {
+  animation-play-state: paused;
+}
+
+@keyframes bt-toast-life {
+  0%   { opacity: 0; transform: translateY(-8px); }
+  8%   { opacity: 1; transform: translateY(0); }
+  85%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); visibility: hidden; }
 }
 
 /* ── Cards ──────────────────────────────────────────────── */
@@ -415,6 +468,21 @@ pre.bt-evidence {
   font-size: 14px;
   font-family: Georgia, serif;
   cursor: pointer;
+}
+
+/* ── Progress dots (vouch-progress milestones) ──────────── */
+.bt-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bt-border);
+  flex-shrink: 0;
+}
+
+.bt-dot-done {
+  background: var(--bt-green-fg);
+  border-color: var(--bt-green-fg);
 }
 
 /* ── Divider ────────────────────────────────────────────── */

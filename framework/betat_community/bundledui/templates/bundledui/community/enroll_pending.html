@@ -1,0 +1,62 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Enrollment pending{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Enrollment</p>
+  <h1 class="bt-h1">Your request is in progress</h1>
+
+  {% if promoted_elsewhere %}
+  <div class="bt-banner bt-banner-neutral" style="margin-bottom:1.5rem">
+    Your enrollment has been completed by your community.
+    Contact your community administrator or a verifier to receive
+    your submission token.
+  </div>
+  <p class="bt-body">
+    Request ID: {{ request_id }}
+  </p>
+
+  {% else %}
+  <p class="bt-body" style="margin-bottom:1.5rem">{{ message }}</p>
+
+  <div class="bt-card" style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1.5rem">
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <span class="bt-dot bt-dot-done"></span>
+      <span class="bt-body" style="color:var(--bt-ink)">Request submitted</span>
+    </div>
+    {% for i in vouch_count_range %}
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <span class="bt-dot bt-dot-done"></span>
+      <span class="bt-body" style="color:var(--bt-ink)">A community member has vouched for you</span>
+    </div>
+    {% endfor %}
+    {% for i in vouches_needed_range %}
+    <div style="display:flex;align-items:center;gap:0.75rem;font-size:14px">
+      <span class="bt-dot"></span>
+      <span class="bt-body">Waiting for another vouch</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="bt-banner">
+    Share your request ID with a community member and ask them to vouch
+    for your enrollment:
+    <br><br>
+    <strong>Request ID: {{ request_id }}</strong>
+    <br><br>
+    A community member can vouch by visiting
+    <strong>/community/vouch/{{ request_id }}</strong> after logging in
+    with their own enrollment token.
+    <br><br>
+    {{ vouch_count }} of {{ threshold }} vouches received.
+  </div>
+  {% endif %}
+
+  <p style="margin-top:2rem;font-size:13px;color:var(--bt-muted)">
+    While you wait, you can
+    <a href="{% url 'bundledui-records' %}" style="color:var(--bt-muted)">browse existing records &rarr;</a>
+  </p>
+
+</div>
+{% endblock %}
