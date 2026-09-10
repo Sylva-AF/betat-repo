@@ -1,6 +1,6 @@
 # TODO 12 — Packaging & Production Guide
 
-> Status: in progress — packaging decision made and implemented (SQLite-default ship, `BETAT_DB` for PostgreSQL, no code changes either way); production guide written; `betat init` now writes `manage.py`; wheel/sdist built and `twine check` passed 2026-09-08; fresh-venv install check passed end-to-end 2026-09-09 after three real bugs found and fixed (migrate-ordering, auth-methods prompt UX, missing templates/static in the wheel — see updates below). A fourth bug (peer-vouch bootstrap catch-22) found and fixed the same session — **code-complete but NOT YET MIGRATED, NOT YET TESTED, NOT YET REBUILT.** Start here next session: "Update 2026-09-09 — PICK UP HERE" at the bottom of this file has the exact commands. Dual-DB pytest gate and a live-Postgres dry run remain open after that (see "Still to do").
+> Status: in progress — packaging decision made and implemented (SQLite-default ship, `BETAT_DB` for PostgreSQL, no code changes either way); production guide written; `betat init` now writes `manage.py`; wheel/sdist built and `twine check` passed 2026-09-08; fresh-venv install check passed end-to-end 2026-09-09 after three real bugs found and fixed (migrate-ordering, auth-methods prompt UX, missing templates/static in the wheel — see updates below). A fourth bug (peer-vouch bootstrap catch-22) found and fixed 2026-09-09, code-complete but explicitly deferred (not migrated/tested/rebuilt) — **however, as of 2026-09-10 the migration and code landed on `main` anyway** (commit `7e982d9`), unintentionally: it had been `git add`-ed in a prior session and sat staged until an unrelated commit swept it in. **The verification pipeline still has NOT run against it** — no `pytest` run against the actual migration, no wheel rebuild, no fresh-venv check. **Start here next session: "Update 2026-09-10 — session deferred" (near the bottom of this file) has the consolidated script** — steps 1-2 (migrate/test) are now redundant with what's on `main` but safe to re-run for confirmation; steps 3-6 (rebuild, fresh-venv verify) are still the real gap. Also see the correction note right below this line.
 > Blueprint: [§12](../BLUEPRINT.md) · Spec: COMMUNITY_FRAMEWORK.md → "Design Goal 4", "storage engines"
 > Depends on: 01-10 · Blocks: seed release
 > Read alongside: [DISTRIBUTION.md](../DISTRIBUTION.md) — the authoritative build/publish guide for this section
@@ -294,6 +294,137 @@ enroll_pending.html` (founding branch), `tests/test_communityauth.py`
 around — recommend abandoning it (fresh `/tmp/betat-test-project` per the
 commands above) rather than trying to migrate a pre-`founding`-column
 SQLite file in place.
+
+### Update 2026-09-10 — session deferred, then corrected: the deferred work landed on `main` anyway
+
+Intent this session was to defer all of §12 to guarantee a clean,
+fully-verified v0.1 before the PyPI name is claimed (registering
+`betat-community` and publishing is effectively a one-way door: the name is
+hard to reclaim/change once operators depend on it). Re-verified the code
+state this session (`models.py`'s `founding` field, `peer_vouch.py`'s
+`enroll()`/`promote()`, `admin.py`'s `approve_founding_requests` all present
+as described) and confirmed at that point nothing had been migrated,
+tested, or rebuilt.
+
+**Correction, later the same session:** an unrelated commit (the enroll/
+submit help-icon UI fix, see below) ended up including the founding-phase
+migration and code anyway. Cause: `git commit -m "..."` with no pathspec
+commits everything currently staged, not just what was just `git add`-ed —
+and the founding-phase files had apparently been staged since a prior
+session and never committed (this is the exact "open question" an earlier
+update in this file flagged: *"whether any of this was actually committed
+— run git status/git log first"* — it wasn't, this time). Net result:
+`communityauth/migrations/0003_peervouchrequest_founding.py` and all the
+founding-phase code are now on `main`, pushed, as of commit `7e982d9`
+(2026-09-10) — **without ever having been run through `pytest`, rebuilt
+into a wheel, or fresh-venv verified.** A second stray file
+(`vouching-review/vouch-snippet.md`, unrelated content that doesn't match
+this codebase — wrong paths/field names/template names) rode along in the
+same commit and is being removed in a follow-up.
+
+**Practical effect on the plan below:** the "PICK UP HERE" script's steps
+1-2 (`makemigrations`/`migrate`, `pytest tests/`) are now about *confirming*
+what's already on `main` rather than applying new changes — run them
+anyway, since none of this has actually been executed yet, just committed.
+Steps 3-6 (retire `settings_production.py`, rebuild, fresh-venv check) are
+still the real open gap and haven't changed. **Lesson for future sessions:
+run `git status` before any `git add`/`git commit` sequence, not after —
+don't assume the index only contains what you just staged.**
+
+**Start next session with this consolidated script** (combines the
+"PICK UP HERE" migration/test/rebuild steps with DISTRIBUTION.md's
+pre-release checklist — stops before the actual `twine upload` so results
+can be reviewed first):
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+# 1. Apply the founding-phase migration
+cd /workspace/framework
+python manage.py makemigrations communityauth
+python manage.py migrate
+
+# 2. Full test suite — expect 138 (133 previous + 5 new)
+pytest tests/
+
+# 3. Retire the superseded settings module (still present as a stub —
+#    confirmed not yet removed as of 2026-09-10)
+cd /workspace
+git rm framework/betat_community/settings_production.py
+
+# 4. Sanity check
+cd /workspace/framework
+python manage.py check
+
+# 5. Rebuild the wheel/sdist — the last build predates the founding-phase fix
+cd /workspace
+rm -rf framework/dist
+python -m build ./framework
+twine check framework/dist/*
+
+# 6. Fresh venv, fresh project — confirm the founding-phase fix end-to-end
+rm -rf /tmp/betat-test
+python3.11 -m venv /tmp/betat-test
+source /tmp/betat-test/bin/activate
+pip install framework/dist/betat_community-0.1.0-py3-none-any.whl
+rm -rf /tmp/betat-test-project && mkdir /tmp/betat-test-project && cd /tmp/betat-test-project
+betat init          # enable community_peer_vouching again — first enrollment
+                     # should show "Awaiting administrator approval", not an
+                     # impossible vouch count
+python manage.py createsuperuser
+# betat start; enroll a first test provenancier; approve via /admin/ ->
+# PeerVouchRequest -> "Approve selected founding-member requests"; confirm
+# a Provenancier + token now exist and the request row is gone.
+```
+
+**Still open after that script (developer actions, unscripted):**
+1. The dual-DB ship gate — point `BETAT_DB` at a live PostgreSQL (local
+   Docker is fine), rerun `pytest tests/`; everything should pass except
+   the two permanently-skipped SQLite-guard-trigger tests. Not attempted
+   yet at all this project.
+2. Dry-run `framework-production.md` against that same real PostgreSQL —
+   confirm the role setup and the REVOKE actually blocks a raw UPDATE/DELETE
+   as the app role. Never exercised for real.
+3. Only once 1–2 above are clean: `twine upload framework/dist/*`
+   (`__token__` + API token — register the `betat-community` name on
+   pypi.org first if not already done), then attach the same `dist/*`
+   files to a `v0.1.0` GitHub Release per DISTRIBUTION.md.
+4. Flip this file's status to `done`, update `TODO.md` row 12.
+
+### Also this session (unrelated to §12) — enroll/submit form help icons, committed
+
+Not part of packaging — this session's other thread, flagged here for the
+same reason as the nav-polish note below (this file gets read first next
+time; `TODO.md` still shows §12 `in progress`).
+
+Field labels and inline guide/hint text on the enroll and submit forms
+previously rendered in the same muted color and blended together, and the
+pages read as wall-of-text. Fixed: `.bt-label-field` is now bold/ink-colored
+(was the same muted gray as body/hint text); secondary explanations moved
+behind a small ⓘ icon next to the label — click to open, click again to
+close (pure-CSS "checkbox hack": a visually-hidden `<input type="checkbox">`
++ a `<label>` pointing at it + a `:checked ~` sibling selector — no JS,
+consistent with the toast messages' no-JS convention below). Explanation
+text was also rewritten in plainer language (e.g. content_hash's tooltip
+now explains what SHA-256 is and gives a runnable command), and coverage
+was widened beyond the fields that already had inline hints — `method` and
+`identity` on enroll, `language` on submit also got icons.
+
+Left inline, deliberately not moved behind an icon: the passphrase
+paragraph on enroll.html (contains a live "log back in" link — a link
+inside a tooltip that closes when you move toward it is broken UX) and the
+declaration checkbox text on submit.html (the actual legal declaration
+being agreed to, not decorative guidance).
+
+Files changed: `bundledui/static/bundledui/styles/betat.css` (`.bt-label-field`
+weight/color, new `.bt-help`/`.bt-help-toggle`/`.bt-help-icon`/`.bt-help-text`
+rules), `bundledui/templates/bundledui/community/enroll.html`,
+`bundledui/templates/bundledui/community/submit.html`. No test changes — CSS/
+template-only, no behavior for pytest to assert on. **Committed and pushed
+this session** (commit `7e982d9`) — but the commit was NOT scoped to just
+these 3 files; see the correction note above ("session deferred, then
+corrected") for what else rode along and why.
 
 ### Also this session (unrelated to §12) — peer-vouch pending-state UI + nav polish
 
