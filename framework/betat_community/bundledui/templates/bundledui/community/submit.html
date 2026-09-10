@@ -26,22 +26,48 @@
     </div>
 
     <div class="bt-form-group">
-      <label class="bt-label-field" for="{{ form.location.id_for_label }}">{{ form.location.label }}</label>
+      <div class="bt-help-row">
+        <label class="bt-label-field" for="{{ form.location.id_for_label }}">{{ form.location.label }}</label>
+        <span class="bt-help">
+          <input type="checkbox" id="help-location" class="bt-help-toggle">
+          <label for="help-location" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+          <span class="bt-help-text">Betat never stores your actual content — only a record proving a
+            human made it. Paste a link to where the content already lives: a webpage address, a DOI
+            (common for academic papers), or an IPFS address. Use the most permanent link you have,
+            since this reference needs to keep working long-term.</span>
+        </span>
+      </div>
       {{ form.location }}
-      <p class="bt-field-hint">Where the content already lives — Betat never hosts it. Use the most
-        permanent locator available: DOI, IPFS hash, or stable URI.</p>
       {{ form.location.errors }}
     </div>
 
     <div class="bt-form-group">
-      <label class="bt-label-field" for="{{ form.content_hash.id_for_label }}">{{ form.content_hash.label }}</label>
+      <div class="bt-help-row">
+        <label class="bt-label-field" for="{{ form.content_hash.id_for_label }}">{{ form.content_hash.label }}</label>
+        <span class="bt-help">
+          <input type="checkbox" id="help-content-hash" class="bt-help-toggle">
+          <label for="help-content-hash" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+          <span class="bt-help-text">A short fingerprint of your content, made with a tool called
+            SHA-256. It lets anyone check later whether the content at your link above has changed
+            since you submitted it. On most computers you can generate one by running
+            <code>sha256sum yourfile</code> in a terminal, or with any free online hash calculator.</span>
+        </span>
+      </div>
       {{ form.content_hash }}
-      <p class="bt-field-hint">Computed from the content at submission time. Detects changes at the source.</p>
       {{ form.content_hash.errors }}
     </div>
 
     <div class="bt-form-group">
-      <label class="bt-label-field" for="{{ form.language.id_for_label }}">{{ form.language.label }}</label>
+      <div class="bt-help-row">
+        <label class="bt-label-field" for="{{ form.language.id_for_label }}">{{ form.language.label }}</label>
+        <span class="bt-help">
+          <input type="checkbox" id="help-language" class="bt-help-toggle">
+          <label for="help-language" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+          <span class="bt-help-text">The language your content is written in, as a short code — en for
+            English, fr for French, es for Spanish, and so on. This helps readers find records in a
+            language they understand.</span>
+        </span>
+      </div>
       {{ form.language }}
       {{ form.language.errors }}
     </div>

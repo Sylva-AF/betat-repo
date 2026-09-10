@@ -5,7 +5,6 @@ at registry registration (a DNS TXT challenge; see COMMUNITY_FRAMEWORK.md
 "Community Identity" and the Roadmap). Nothing secret is collected here.
 
 Added in amendment (Option C — conflict-free):
-  • environment preflight (Python 3.11 floor, SQLite availability)
   • DNS resolution check on the community id
   • operator declaration of good-faith intent
   • personal contact email collection
@@ -14,12 +13,13 @@ CommunityConfig remains the sole operational source of truth — unchanged.
 """
 import secrets
 import socket
-import sys
 from pathlib import Path
 
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
+from betat_community.communityauth.floor import PROTOCOL_LIST
 from betat_community.core.models import (
     BASELINE_HI_STANDARD,
     CONTENT_TYPE_CHOICES,
@@ -27,6 +27,7 @@ from betat_community.core.models import (
 )
 
 CONTENT_TYPE_KEYS = [key for key, _ in CONTENT_TYPE_CHOICES]
+AUTH_METHOD_KEYS = list(PROTOCOL_LIST)
 
 ENV_PATH = Path('.env')
 MANAGE_PY_PATH = Path('manage.py')
@@ -64,32 +65,6 @@ OPERATOR_DECLARATION = (
     "the email I provide and may investigate communities that appear "
     "to misuse the framework."
 )
-
-
-# ── Preflight helpers ──────────────────────────────────────────────────────
-
-def _preflight_issues():
-    """Return list of (issue, remedy) tuples. Empty = environment is sound."""
-    issues = []
-    major, minor = sys.version_info.major, sys.version_info.minor
-    if (major, minor) < (3, 11):
-        issues.append((
-            f'Python {major}.{minor} is below the required 3.11 floor.',
-            'Install Python 3.11+ via your OS package manager:\n'
-            '        Rocky/RHEL: dnf install python3.11\n'
-            '        Ubuntu/Debian: apt install python3.11\n'
-            '        macOS: brew install python@3.11',
-        ))
-    try:
-        import sqlite3  # noqa: F401
-    except ImportError:
-        issues.append((
-            'SQLite is not available in this Python installation.',
-            'Your Python was likely compiled from source without SQLite.\n'
-            '        Install Python via your OS package manager (see above)\n'
-            '        or use the official Docker image: docker run betat/community',
-        ))
-    return issues
 
 
 def _check_domain_dns(domain):
@@ -180,17 +155,11 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # ── 1. Environment preflight ───────────────────────────────────────
-        issues = _preflight_issues()
-        if issues:
-            self.stderr.write('\nEnvironment check failed:\n')
-            for i, (issue, remedy) in enumerate(issues, 1):
-                self.stderr.write(f'\n  [{i}] {issue}')
-                self.stderr.write(f'      {remedy}')
-            self.stderr.write(
-                '\n\nResolve the above, then run betat init again.\n'
-            )
-            raise CommandError('Environment check failed — see above.')
+        # ── 1. Apply migrations — betat init is the very first command run,
+        # before manage.py (which init itself writes, see step 8b) has ever
+        # existed to run `migrate` through. Idempotent: a later
+        # `python manage.py migrate` is a harmless no-op.
+        call_command('migrate', verbosity=0, interactive=False)
 
         # ── 2. Existing config guard (unchanged from §02) ──────────────────
         if CommunityConfig.objects.exists():
@@ -263,8 +232,7 @@ class Command(BaseCommand):
 
         auth_methods = options["auth_methods"]
         if not auth_methods:
-            raw = self._prompt("Authentication method(s), comma-separated")
-            auth_methods = [m.strip() for m in raw.split(",") if m.strip()]
+            auth_methods = self._prompt_auth_methods(AUTH_METHOD_KEYS)
 
         # ── 5. Save CommunityConfig (unchanged from §02) ──────────────────
         config = CommunityConfig(
@@ -349,6 +317,23 @@ class Command(BaseCommand):
             if value in choices:
                 return value
             self.stderr.write(f"Choose one of: {', '.join(choices)}")
+
+    def _prompt_auth_methods(self, choices):
+        while True:
+            raw = input(
+                f"Authentication method(s), comma-separated ({'/'.join(choices)}): "
+            )
+            methods = [m.strip() for m in raw.split(",") if m.strip()]
+            off_list = [m for m in methods if m not in choices]
+            if methods and not off_list:
+                return methods
+            if off_list:
+                self.stderr.write(
+                    f"Not on the protocol list: {', '.join(off_list)}. "
+                    f"Allowed: {', '.join(choices)}"
+                )
+            else:
+                self.stderr.write("At least one authentication method is required.")
 
     def _format_validation_error(self, exc):
         if hasattr(exc, "message_dict"):

@@ -211,8 +211,36 @@ def _start_peer_vouch_enrollment(client, identity, display_name=''):
     return response
 
 
+def _seed_enrolled_vouchers(n=2):
+    """Past founding phase (BLUEPRINT §03 Decision Log, 2026-09-09) — for
+    tests exercising the normal vouch-threshold path, not admin approval."""
+    for i in range(n):
+        persist_provenancier(
+            identity=f'voucher-seed-{i}',
+            identity_type='peer_attested',
+            authentication_method='community_peer_vouching',
+            display_name='',
+            verification_material={},
+        )
+
+
+def test_peer_vouch_enroll_shows_founding_message(client):
+    """BLUEPRINT §03 Decision Log, 2026-09-09: fewer than 2 enrolled
+    Provenanciers means peer-vouch has no vouch progress to show — an
+    admin approves founding requests directly instead."""
+    _peer_vouch_config()
+    _start_peer_vouch_enrollment(client, 'alice', 'Alice')
+
+    response = client.get(reverse('bundledui-enroll'))
+    assert response.status_code == 200
+    assert b'Your request is in progress' in response.content
+    assert b'Awaiting administrator approval' in response.content
+    assert b'vouches received' not in response.content
+
+
 def test_peer_vouch_enroll_shows_pending_progress_on_return(client):
     _peer_vouch_config()
+    _seed_enrolled_vouchers()
     _start_peer_vouch_enrollment(client, 'alice', 'Alice')
 
     response = client.get(reverse('bundledui-enroll'))
@@ -225,6 +253,7 @@ def test_peer_vouch_pending_completes_when_polling_itself_crosses_threshold(clie
     from betat_community.communityauth.models import PeerVouchRequest
 
     _peer_vouch_config()
+    _seed_enrolled_vouchers()
     _start_peer_vouch_enrollment(client, 'dana', 'Dana')
 
     # Simulate vouches having accumulated via a path that didn't also

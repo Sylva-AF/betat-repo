@@ -14,6 +14,15 @@ only for an authenticated caller who is themselves an enrolled
 Provenancier (enforced by VouchView, not here). Threshold is always read
 live from CommunityConfig.peer_vouch_threshold — never hardcoded — so a
 community that raises it takes effect on the very next vouch.
+
+Founding phase (BLUEPRINT §03 Decision Log, 2026-09-09): peer-vouch can't
+collect vouches from members who don't exist yet, so while fewer than 2
+Provenanciers are enrolled, enroll() skips the vouch-threshold path
+entirely and routes to admin approval instead (communityauth/admin.py) —
+this replaces the earlier answer to the same problem (BLUEPRINT §10,
+2026-08: route a fresh community's first members through CryptoKeyAuth
+instead), which only helped operators who happened to enable that method
+too.
 """
 from ..base import AuthMethod
 from ..enrollment import persist_provenancier
@@ -32,13 +41,24 @@ class PeerVouchAuth(AuthMethod):
             return Rejection(code='identity_taken', message='That identity is already enrolled.')
 
         display_name = applicant.get('display_name', '')
+        founding = Provenancier.objects.count() < 2
         req, _created = PeerVouchRequest.objects.get_or_create(
-            identity=identity, defaults={'display_name': display_name},
+            identity=identity, defaults={'display_name': display_name, 'founding': founding},
         )
+
+        if req.founding:
+            return Pending(
+                code='pending_admin',
+                message=(
+                    'Enrollment request received. This community is just getting started — '
+                    'the administrator will review and approve founding member requests directly.'
+                ),
+                request_id=req.pk,
+            )
 
         threshold = self.config.peer_vouch_threshold
         if len(req.vouchers) >= threshold:
-            return self._promote(req)
+            return self.promote(req)
 
         return Pending(
             code='pending_vouches',
@@ -73,7 +93,7 @@ class PeerVouchAuth(AuthMethod):
 
         threshold = self.config.peer_vouch_threshold
         if len(req.vouchers) >= threshold:
-            return self._promote(req)
+            return self.promote(req)
 
         return Pending(
             code='pending_vouches',
@@ -83,7 +103,12 @@ class PeerVouchAuth(AuthMethod):
             vouches_needed=threshold - len(req.vouchers),
         )
 
-    def _promote(self, req):
+    def promote(self, req):
+        """Persist req as a full Provenancier and delete the request.
+        Called from add_vouch()/enroll() once the vouch threshold is met,
+        and from communityauth/admin.py's approve_founding_requests action
+        for founding requests (public, not _-prefixed, since admin.py is a
+        legitimate caller outside this class)."""
         provenancier, _token = persist_provenancier(
             identity=req.identity,
             identity_type='peer_attested',

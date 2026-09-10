@@ -362,8 +362,84 @@ pre.bt-evidence {
 .bt-label-field {
   display: block;
   font-size: 14px;
-  color: var(--bt-muted);
+  font-weight: 600;
+  color: var(--bt-ink);
   margin-bottom: 6px;
+}
+
+/* Label/header + info-icon row — keeps the label bold and legible while
+   moving secondary explanation into a tooltip instead of a full paragraph. */
+.bt-help-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.bt-help-row .bt-label-field,
+.bt-help-row .bt-h2 {
+  margin-bottom: 0;
+}
+
+/* Info-icon, click-to-toggle (pure CSS "checkbox hack", no JS — same
+   no-JS convention as the toast messages above). A hidden checkbox plus
+   a <label> pointing at it: clicking (or pressing Space/Enter while
+   focused) toggles the explanation open, click again to close. */
+.bt-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bt-help-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.bt-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--bt-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.bt-help-toggle:checked + .bt-help-icon,
+.bt-help-toggle:focus + .bt-help-icon {
+  color: var(--bt-ink);
+}
+
+.bt-help-text {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  width: 300px;
+  max-width: 80vw;
+  background: var(--bt-ink);
+  color: var(--bt-paper);
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: Georgia, 'Times New Roman', serif;
+  padding: 10px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(28,27,26,0.25);
+}
+
+.bt-help-toggle:checked ~ .bt-help-text {
+  display: block;
+}
+
+.bt-help-text code {
+  background: rgba(251,250,247,0.18);
+  color: var(--bt-paper);
 }
 
 .bt-input,

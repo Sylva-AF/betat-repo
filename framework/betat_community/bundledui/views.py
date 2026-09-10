@@ -127,6 +127,15 @@ def _render_peer_vouch_pending(request, api, request_id):
         messages.success(request, f"Enrolled as '{data['identity']}'. You can now submit a contribution.")
         return redirect('bundledui-submit')
 
+    if poll_status == 202 and data.get('status') == 'pending_admin':
+        # Founding-phase request (BLUEPRINT §03 Decision Log, 2026-09-09):
+        # no vouch progress to show — an admin approves directly.
+        return render(request, 'bundledui/community/enroll_pending.html', {
+            'founding': True,
+            'message': data['message'],
+            'promoted_elsewhere': False,
+        })
+
     if poll_status == 202:
         return render(request, 'bundledui/community/enroll_pending.html', {
             'request_id': request_id,

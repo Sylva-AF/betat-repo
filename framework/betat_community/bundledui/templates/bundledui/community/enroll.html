@@ -19,22 +19,49 @@
     {% csrf_token %}
 
     <div class="bt-form-group">
-      <label class="bt-label-field" for="{{ form.method.id_for_label }}">{{ form.method.label }}</label>
+      <div class="bt-help-row">
+        <label class="bt-label-field" for="{{ form.method.id_for_label }}">{{ form.method.label }}</label>
+        <span class="bt-help">
+          <input type="checkbox" id="help-method" class="bt-help-toggle">
+          <label for="help-method" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+          <span class="bt-help-text">This is how you'll prove you're a real person. Pick whichever method
+            you can actually complete below: community peer vouching (other members vouch for you),
+            a cryptographic key (if you already have an SSH/PGP-style keypair), or an institutional
+            endorsement (if you're enrolling through an organization). Not sure? Ask your community
+            which one they support.</span>
+        </span>
+      </div>
       {{ form.method }}
       {{ form.method.errors }}
     </div>
 
     <div class="bt-form-group">
-      <label class="bt-label-field" for="{{ form.identity.id_for_label }}">{{ form.identity.label }}</label>
+      <div class="bt-help-row">
+        <label class="bt-label-field" for="{{ form.identity.id_for_label }}">{{ form.identity.label }}</label>
+        <span class="bt-help">
+          <input type="checkbox" id="help-identity" class="bt-help-toggle">
+          <label for="help-identity" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+          <span class="bt-help-text">A short, unique way to identify you — an email address or a
+            handle both work. This is what shows up in the public record, so it does not need to
+            reveal your real name.</span>
+        </span>
+      </div>
       {{ form.identity }}
       {{ form.identity.errors }}
     </div>
 
     <div class="bt-form-group">
-      <label class="bt-label-field" for="{{ form.display_name.id_for_label }}">{{ form.display_name.label }}</label>
+      <div class="bt-help-row">
+        <label class="bt-label-field" for="{{ form.display_name.id_for_label }}">{{ form.display_name.label }}</label>
+        <span class="bt-help">
+          <input type="checkbox" id="help-display-name" class="bt-help-toggle">
+          <label for="help-display-name" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+          <span class="bt-help-text">You don't need to use your real name — a nickname is fine. What
+            matters is that a real person, not a bot or a script, is behind the account. Leave this
+            blank to stay fully pseudonymous.</span>
+        </span>
+      </div>
       {{ form.display_name }}
-      <p class="bt-field-hint">Pseudonymous enrollment is permitted — what matters
-        is that a human identity is behind it.</p>
       {{ form.display_name.errors }}
     </div>
 
@@ -47,8 +74,17 @@
       {{ form.vouchers.errors }}
     </div>
 
-    <h2 class="bt-h2" style="margin-bottom:0.25rem">If enrolling via cryptographic signature</h2>
-    <p class="bt-field-hint" style="margin-bottom:0.75rem">Sign your own public key with your private key as proof of possession.</p>
+    <div class="bt-help-row" style="margin-bottom:0.75rem">
+      <h2 class="bt-h2">If enrolling via cryptographic signature</h2>
+      <span class="bt-help">
+        <input type="checkbox" id="help-crypto-signature" class="bt-help-toggle">
+        <label for="help-crypto-signature" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+        <span class="bt-help-text">For people who already have a cryptographic key pair (like an
+          SSH or PGP key). You prove you own the key by signing your own public key with your
+          matching private key. If that's unfamiliar, skip this and use a passphrase instead,
+          just below — the community will generate and sign a key for you automatically.</span>
+      </span>
+    </div>
     <div class="bt-form-group">
       <label class="bt-label-field" for="{{ form.public_key.id_for_label }}">{{ form.public_key.label }}</label>
       {{ form.public_key }}
@@ -76,8 +112,17 @@
       {{ form.passphrase_confirm.errors }}
     </div>
 
-    <h2 class="bt-h2" style="margin-bottom:0.25rem">If enrolling via institutional endorsement</h2>
-    <p class="bt-field-hint" style="margin-bottom:0.75rem">Signature above is your institution's signature over your identity string.</p>
+    <div class="bt-help-row" style="margin-bottom:0.75rem">
+      <h2 class="bt-h2">If enrolling via institutional endorsement</h2>
+      <span class="bt-help">
+        <input type="checkbox" id="help-institutional-endorsement" class="bt-help-toggle">
+        <label for="help-institutional-endorsement" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+        <span class="bt-help-text">For enrolling through an organization — a university, publisher,
+          or employer. Your institution provides a digital signature (paste it into the "Signature"
+          field above) that vouches for your identity on their behalf. Ask your institution's
+          administrator for this if you don't already have it.</span>
+      </span>
+    </div>
     <div class="bt-form-group">
       <label class="bt-label-field" for="{{ form.institution_id.id_for_label }}">{{ form.institution_id.label }}</label>
       {{ form.institution_id }}

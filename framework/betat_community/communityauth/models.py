@@ -54,11 +54,21 @@ class PeerVouchRequest(models.Model):
     persisted into `Provenancier.verification_material['vouchers']`) and
     promotes to a full `Provenancier` once the community's
     `CommunityConfig.peer_vouch_threshold` is met. Not itself a Provenancier
-    — never counts as an enrolled identity until promoted."""
+    — never counts as an enrolled identity until promoted.
+
+    `founding` (BLUEPRINT §03 Decision Log, 2026-09-09): True when this
+    request was created while fewer than 2 Provenanciers were enrolled —
+    peer-vouch can't collect vouches from members who don't exist yet, so
+    a founding request skips the vouch-threshold path entirely and is
+    promoted via admin approval instead (communityauth/admin.py)."""
 
     identity = models.CharField(max_length=500, unique=True)
     display_name = models.CharField(max_length=200, blank=True, default='')
     vouchers = models.JSONField(default=list, blank=True)
+    founding = models.BooleanField(
+        default=False,
+        help_text='True for the first two members — admin approval sufficient, no peer vouches required.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

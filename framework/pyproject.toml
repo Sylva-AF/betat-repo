@@ -27,12 +27,11 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Internet :: WWW/HTTP",
 ]
-# psycopg/dj-database-url are dev-time only (the PostgreSQL leg of the dual-DB
-# ship gate, DISTRIBUTION.md) — the settings.py block that imports them is
-# manually stripped before a release build, so the packaged wheel never
-# imports either. Kept as plain dependencies here (not an extra) since dev
-# work — including `manage.py check`/pytest, which import settings.py as-is —
-# needs them present unconditionally, same as the rest of [dev].
+# psycopg/dj-database-url are plain dependencies, not an optional extra:
+# settings.py imports dj_database_url unconditionally to support both SQLite
+# (default) and PostgreSQL (via BETAT_DB) from the same installed package,
+# permanently — never stripped before a release build (DISTRIBUTION.md
+# "What ships" correction, §12 Decision Log, 2026-08).
 dependencies = [
     "django>=5,<6",
     "djangorestframework",
@@ -60,6 +59,9 @@ betat = "betat_community.cli:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["betat_community*"]
+
+[tool.setuptools.package-data]
+"*" = ["templates/**/*", "static/**/*"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "betat_community.settings"

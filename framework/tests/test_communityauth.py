@@ -77,7 +77,12 @@ def test_community_config_rejects_off_list_auth_method():
 # --- PeerVouchAuth (two-phase, BLUEPRINT §03 Decision Log 2026-09) ------
 
 def test_peer_vouch_enroll_returns_pending_with_zero_vouches():
+    # 2 enrolled vouchers first — past founding phase (BLUEPRINT §03
+    # Decision Log, 2026-09-09), so this exercises the normal
+    # vouch-threshold path this test targets, not admin approval.
     config = _config(peer_vouch_threshold=2)
+    _enrolled_voucher('voucher-one')
+    _enrolled_voucher('voucher-two')
     plugin = PeerVouchAuth(config)
 
     result = plugin.enroll({'identity': 'newcomer', 'display_name': 'Newcomer'})
@@ -88,6 +93,68 @@ def test_peer_vouch_enroll_returns_pending_with_zero_vouches():
     assert result.vouches_needed == 2
     assert PeerVouchRequest.objects.filter(identity='newcomer').exists()
     assert not Provenancier.objects.filter(identity='newcomer').exists()
+
+
+def test_peer_vouch_enroll_founding_phase_routes_to_admin():
+    """BLUEPRINT §03 Decision Log, 2026-09-09: fewer than 2 enrolled
+    Provenanciers means peer-vouch can't collect vouches from anyone yet —
+    the request routes to admin approval instead of the vouch threshold."""
+    config = _config(peer_vouch_threshold=2)
+    plugin = PeerVouchAuth(config)
+
+    result = plugin.enroll({'identity': 'newcomer', 'display_name': 'Newcomer'})
+
+    assert isinstance(result, Pending)
+    assert result.code == 'pending_admin'
+    req = PeerVouchRequest.objects.get(identity='newcomer')
+    assert req.founding is True
+    assert not Provenancier.objects.filter(identity='newcomer').exists()
+
+
+def _admin_request():
+    from django.contrib.messages.storage.fallback import FallbackStorage
+    from django.test import RequestFactory
+
+    request = RequestFactory().get('/admin/')
+    request.session = {}
+    request._messages = FallbackStorage(request)
+    return request
+
+
+def test_approve_founding_requests_admin_action_promotes():
+    from django.contrib.admin.sites import AdminSite
+
+    from betat_community.communityauth.admin import PeerVouchRequestAdmin, approve_founding_requests
+
+    config = _config(peer_vouch_threshold=2)
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({'identity': 'newcomer', 'display_name': 'Newcomer'})
+    assert pending.code == 'pending_admin'
+
+    modeladmin = PeerVouchRequestAdmin(PeerVouchRequest, AdminSite())
+    approve_founding_requests(modeladmin, _admin_request(), PeerVouchRequest.objects.filter(identity='newcomer'))
+
+    assert Provenancier.objects.filter(identity='newcomer').exists()
+    assert not PeerVouchRequest.objects.filter(identity='newcomer').exists()
+
+
+def test_approve_founding_requests_admin_action_skips_non_founding():
+    from django.contrib.admin.sites import AdminSite
+
+    from betat_community.communityauth.admin import PeerVouchRequestAdmin, approve_founding_requests
+
+    config = _config(peer_vouch_threshold=2)
+    _enrolled_voucher('voucher-one')
+    _enrolled_voucher('voucher-two')
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({'identity': 'newcomer', 'display_name': 'Newcomer'})
+    assert pending.code == 'pending_vouches'
+
+    modeladmin = PeerVouchRequestAdmin(PeerVouchRequest, AdminSite())
+    approve_founding_requests(modeladmin, _admin_request(), PeerVouchRequest.objects.filter(identity='newcomer'))
+
+    assert not Provenancier.objects.filter(identity='newcomer').exists()
+    assert PeerVouchRequest.objects.filter(identity='newcomer').exists()
 
 
 def test_peer_vouch_enroll_rejects_duplicate_identity():
@@ -174,7 +241,12 @@ def test_peer_vouch_authenticate_success_and_rejection():
 # --- /betat/enroll + /betat/vouch: the two-phase flow end to end ---------
 
 def test_enroll_endpoint_returns_202_for_pending_peer_vouch():
+    # 2 enrolled vouchers first — past founding phase (BLUEPRINT §03
+    # Decision Log, 2026-09-09), exercising the normal vouch-threshold
+    # response this test targets.
     _config(auth_methods=['community_peer_vouching'], peer_vouch_threshold=2)
+    _enrolled_voucher('voucher-one')
+    _enrolled_voucher('voucher-two')
 
     response = APIClient().post(
         reverse('betat-enroll'),
@@ -184,6 +256,19 @@ def test_enroll_endpoint_returns_202_for_pending_peer_vouch():
     assert response.status_code == 202
     assert response.data['status'] == 'pending_vouches'
     assert response.data['vouches_needed'] == 2
+
+
+def test_enroll_endpoint_returns_202_pending_admin_when_founding():
+    """BLUEPRINT §03 Decision Log, 2026-09-09."""
+    _config(auth_methods=['community_peer_vouching'], peer_vouch_threshold=2)
+
+    response = APIClient().post(
+        reverse('betat-enroll'),
+        {'method': 'community_peer_vouching', 'applicant': {'identity': 'newcomer'}},
+        format='json',
+    )
+    assert response.status_code == 202
+    assert response.data['status'] == 'pending_admin'
 
 
 def test_vouch_endpoint_requires_authentication():
