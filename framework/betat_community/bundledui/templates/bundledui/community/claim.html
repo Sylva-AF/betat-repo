@@ -1,0 +1,48 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Claim your enrollment{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Returning applicant</p>
+  <h1 class="bt-h1">Claim your enrollment</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    For community peer-vouching or institutional-endorsement applicants who set
+    a claim passphrase when they first enrolled. If you didn't set one, this
+    won't work — return to the device/browser you enrolled from instead, or
+    ask a community administrator for help.
+  </p>
+
+  {% if result %}
+  <div class="bt-card" style="margin-bottom:1.5rem">
+    {% if result.status == 'pending_admin' %}
+    <p class="bt-body">Still awaiting administrator approval (request ID {{ result.request_id }}).</p>
+    {% else %}
+    <p class="bt-body">
+      {{ result.vouch_count }} of {{ result.vouch_count|add:result.vouches_needed }} vouches
+      received (request ID {{ result.request_id }}).
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="bt-card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="identity">Identity / handle</label>
+      <input class="bt-input" type="text" id="identity" name="identity" required>
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="claim_passphrase">Claim passphrase</label>
+      <input class="bt-input" type="password" id="claim_passphrase" name="claim_passphrase" required>
+    </div>
+
+    <button type="submit" class="bt-btn-primary">Check / claim</button>
+  </form>
+  </div>
+
+</div>
+{% endblock %}

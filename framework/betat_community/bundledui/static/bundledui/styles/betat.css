@@ -57,19 +57,24 @@ a { color: var(--bt-ink); }
   z-index: 100;
 }
 
+/* The community's own brand — deliberately reads as a logotype, not
+   another nav link: larger, bolder, its own icon size. This is the
+   community's identity (BLUEPRINT §07 Decision Log, 2026-09-12);
+   Betat's own attribution stays in the footer credit below. */
 .bt-nav-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-right: auto;
   text-decoration: none;
 }
 
 .bt-nav-brand-name {
   color: var(--bt-paper);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .bt-nav a {
@@ -100,8 +105,73 @@ a { color: var(--bt-ink); }
   background: rgba(251,250,247,0.08);
 }
 
+/* ── Nav dropdown (staff-gated Admin menu, TODO 13) — same pure-CSS
+   checkbox-hack toggle as .bt-help below, styled as a real dropdown
+   menu instead of a tooltip bubble. No JS: click the label to open,
+   click again (or a menu link) to navigate away/close. Known limitation
+   of the technique, same as .bt-help's tooltips — clicking elsewhere on
+   the page doesn't close it early. ────────────────────── */
+.bt-nav-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+}
+
+.bt-nav-dropdown-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.bt-nav-dropdown-label {
+  color: #C8C4BC;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+}
+
+.bt-nav-dropdown-toggle:checked + .bt-nav-dropdown-label,
+.bt-nav-dropdown-label:hover {
+  color: var(--bt-paper);
+}
+
+.bt-nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 150;
+  min-width: 180px;
+  background: var(--bt-paper);
+  border: 0.5px solid var(--bt-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(28,27,26,0.25);
+  padding: 6px;
+}
+
+.bt-nav-dropdown-toggle:checked ~ .bt-nav-dropdown-menu {
+  display: block;
+}
+
+.bt-nav-dropdown-menu a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--bt-ink);
+  text-decoration: none;
+}
+
+.bt-nav-dropdown-menu a:hover {
+  background: var(--bt-warm);
+}
+
 /* ── Eclipse logo SVG (inline, reusable) ────────────────── */
-.bt-eclipse { display: inline-block; flex-shrink: 0; }
+.bt-eclipse { display: inline-block; flex-shrink: 0; width: 30px; height: 30px; }
 
 /* ── Page wrapper ───────────────────────────────────────── */
 .bt-page {

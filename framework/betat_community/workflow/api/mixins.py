@@ -1,14 +1,7 @@
-"""View-level behavior shared across the workflow API's verifier-only
-endpoints (queue, review). Not in common/ — only this app uses it so far
-(BLUEPRINT §0 convention: used by one app → that app's api/).
+"""Empty following a move: `IsVerifier` now lives in
+`betat_community.common.permissions` (TODO 13, 2026-09-13 — needed by
+communityauth's new admin-dashboard endpoints too, so it moved per §0's
+"used by two apps -> common/" rule). Nothing else in this file remains.
+`git rm` this file next time it's touched (same pattern as BLUEPRINT §12's
+retired `settings_production.py` stub).
 """
-from rest_framework.permissions import BasePermission
-
-
-class IsVerifier(BasePermission):
-    """A verifier is a Django staff user (BLUEPRINT §4 Decision Log) — a
-    governance role granted via the admin panel, distinct from the
-    Provenancier identity model. Superusers are staff by definition."""
-
-    def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.is_staff)

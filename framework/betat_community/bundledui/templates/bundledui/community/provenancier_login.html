@@ -5,11 +5,20 @@
 <div class="bt-page">
 
   <p class="bt-label">Returning Provenancier</p>
+
+  {% if passphrase_login_available %}
   <h1 class="bt-h1">Log in with your passphrase</h1>
   <p class="bt-body" style="margin-bottom:1.5rem">
     Only for identities enrolled via a passphrase-derived cryptographic signature.
     Your passphrase is used once to confirm your identity and is never stored.
   </p>
+  {% if other_methods_enabled %}
+  <p class="bt-field-hint" style="margin-bottom:1.5rem">
+    This community also accepts other enrollment methods. This form only works
+    if you enrolled with a passphrase or key — if you enrolled another way, stay
+    on the device/browser you enrolled from, or ask an administrator for help.
+  </p>
+  {% endif %}
 
   <div class="bt-card">
   <form method="post" novalidate>
@@ -28,6 +37,22 @@
     <button type="submit" class="bt-btn-primary">Log in</button>
   </form>
   </div>
+
+  <p style="margin-top:1rem;font-size:13px;color:var(--bt-muted)">
+    Know your current passphrase and want to change it?
+    <a href="{% url 'bundledui-rotate-passphrase' %}" style="color:var(--bt-muted)">Rotate your passphrase &rarr;</a>
+  </p>
+
+  {% else %}
+  <h1 class="bt-h1">This community doesn't use a password</h1>
+  <div class="bt-banner bt-banner-neutral" style="margin-bottom:1.5rem">
+    This community's enrollment doesn't use a passphrase, so there's nothing to
+    log in with here. Return to the device/browser you enrolled from — it stays
+    signed in automatically. If you set a claim passphrase when you first
+    enrolled, you can <a href="{% url 'bundledui-claim' %}">claim your enrollment</a>
+    from here instead — otherwise, ask a community administrator for help.
+  </div>
+  {% endif %}
 
 </div>
 {% endblock %}

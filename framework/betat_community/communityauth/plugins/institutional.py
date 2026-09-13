@@ -11,6 +11,8 @@ the endorsement against the *current* trusted_institutions entry — an
 institution removed or rekeyed after enrollment stops authenticating,
 even though the original enroll() succeeded.
 """
+from django.contrib.auth.hashers import make_password
+
 from .. import crypto
 from ..base import AuthMethod
 from ..enrollment import persist_provenancier
@@ -46,12 +48,20 @@ class InstitutionalAuth(AuthMethod):
             return Rejection(code='invalid_endorsement', message='signature does not verify against the institution public_key.')
 
         display_name = applicant.get('display_name', '')
+        verification_material = {'institution_id': institution_id, 'signature': signature}
+        # Optional claim passphrase (TODO 13 task 3): institutional
+        # enrollment is synchronous (no pending phase), so this is only
+        # ever checked post-promotion by POST /betat/enroll/claim — same
+        # mechanism and storage shape as PeerVouchAuth's.
+        claim_passphrase = (applicant.get('claim_passphrase') or '').strip()
+        if claim_passphrase:
+            verification_material['claim_passphrase_hash'] = make_password(claim_passphrase)
         provenancier, _token = persist_provenancier(
             identity=identity,
             identity_type='institutional_id',
             authentication_method=self.method_name,
             display_name=display_name,
-            verification_material={'institution_id': institution_id, 'signature': signature},
+            verification_material=verification_material,
         )
         return ProvenancierIdentity(
             identity=provenancier.identity,

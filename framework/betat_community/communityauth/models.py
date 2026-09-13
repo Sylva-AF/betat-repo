@@ -69,6 +69,16 @@ class PeerVouchRequest(models.Model):
         default=False,
         help_text='True for the first two members — admin approval sufficient, no peer vouches required.',
     )
+    claim_passphrase_hash = models.CharField(
+        max_length=200, blank=True, default='',
+        help_text=(
+            'Optional (TODO 13 task 3): lets the applicant retrieve their pending status or, '
+            'once promoted, their token from a different session/device later, via '
+            'POST /betat/enroll/claim. Hashed with Django\'s password hasher (make_password) — '
+            'never the plaintext passphrase. Blank means the applicant did not set one and has '
+            'no self-service claim path (same-session polling / admin fallback only).'
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

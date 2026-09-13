@@ -1,0 +1,45 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Change your passphrase{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Returning Provenancier</p>
+  <h1 class="bt-h1">Change your passphrase</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    For identities enrolled via a passphrase-derived cryptographic signature.
+    Enter your current passphrase to prove it's you, then choose a new one.
+    This also invalidates your existing token — if you suspect your
+    passphrase or token was exposed, this is the right response.
+  </p>
+
+  <div class="bt-card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="identity">Identity / handle</label>
+      <input class="bt-input" type="text" id="identity" name="identity" required>
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="current_passphrase">Current passphrase</label>
+      <input class="bt-input" type="password" id="current_passphrase" name="current_passphrase" required>
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="new_passphrase">New passphrase</label>
+      <input class="bt-input" type="password" id="new_passphrase" name="new_passphrase" required>
+    </div>
+
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="new_passphrase_confirm">Confirm new passphrase</label>
+      <input class="bt-input" type="password" id="new_passphrase_confirm" name="new_passphrase_confirm" required>
+    </div>
+
+    <button type="submit" class="bt-btn-primary">Rotate passphrase</button>
+  </form>
+  </div>
+
+</div>
+{% endblock %}

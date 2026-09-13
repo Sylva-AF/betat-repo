@@ -1,0 +1,66 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Admin — approve enrollments{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Administrator</p>
+  <h1 class="bt-h1">Approve enrollments</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    Founding-member requests need your direct approval. Normal requests promote
+    automatically once enough existing members vouch for them — shown here for
+    visibility only; there is no staff override for those.
+  </p>
+
+  <h2 class="bt-h2" style="margin-bottom:0.75rem">Founding requests</h2>
+  {% if founding_requests %}
+  {% for req in founding_requests %}
+  <div class="bt-card">
+    <div class="bt-queue-item">
+      <div>
+        <h2 class="bt-h2">{{ req.display_name|default:req.identity }}</h2>
+        <div class="bt-record-meta" style="margin-top:4px">
+          <span>{{ req.identity }}</span>
+          <span>Requested {{ req.created_at }}</span>
+        </div>
+      </div>
+      <div class="bt-queue-actions">
+        <form method="post" action="{% url 'bundledui-admin-approve' req.id %}">
+          {% csrf_token %}
+          <button type="submit" class="bt-btn-primary bt-btn-sm">Approve</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="bt-empty" style="padding:1.5rem 1rem;margin-bottom:1.5rem">
+    <p class="bt-body">No founding requests waiting on your approval.</p>
+  </div>
+  {% endif %}
+
+  <hr class="bt-divider">
+
+  <h2 class="bt-h2" style="margin-bottom:0.75rem">Normal requests (peer-vouch in progress)</h2>
+  {% if normal_requests %}
+  {% for req in normal_requests %}
+  <div class="bt-card">
+    <div class="bt-queue-item">
+      <div>
+        <h2 class="bt-h2">{{ req.display_name|default:req.identity }}</h2>
+        <div class="bt-record-meta" style="margin-top:4px">
+          <span>{{ req.identity }}</span>
+          <span>{{ req.vouch_count }} of {{ threshold }} vouches</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="bt-empty" style="padding:1.5rem 1rem">
+    <p class="bt-body">No normal requests currently awaiting peer vouches.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

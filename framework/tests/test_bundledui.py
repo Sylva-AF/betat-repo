@@ -196,6 +196,33 @@ def test_provenancier_logout_clears_session(client):
     assert 'provenancier_token' not in client.session
 
 
+# --- provenancier login, adaptive access (TODO 13, 2026-09-12) -----------
+
+def test_provenancier_login_shows_form_when_passphrase_method_enabled(client):
+    _config(auth_methods=['cryptographic_signature'])
+    response = client.get(reverse('bundledui-provenancier-login'))
+    assert response.status_code == 200
+    assert b'<form method="post"' in response.content
+    assert b"doesn't use a password" not in response.content
+
+
+def test_provenancier_login_hides_form_when_no_passphrase_method(client):
+    _config(auth_methods=['community_peer_vouching'])
+    response = client.get(reverse('bundledui-provenancier-login'))
+    assert response.status_code == 200
+    assert b'<form method="post"' not in response.content
+    assert b'name="passphrase"' not in response.content
+    assert b"doesn't use a password" in response.content
+
+
+def test_provenancier_login_shows_note_when_multiple_methods_enabled(client):
+    _config(auth_methods=['cryptographic_signature', 'community_peer_vouching'])
+    response = client.get(reverse('bundledui-provenancier-login'))
+    assert response.status_code == 200
+    assert b'<form method="post"' in response.content
+    assert b'also accepts other enrollment methods' in response.content
+
+
 # --- peer-vouch pending state (§03 Decision Log, 2026-09) -----------------
 
 def _peer_vouch_config():
@@ -343,6 +370,238 @@ def test_review_action_accept_produces_record(client):
     assert record.content['type'] == 'text'
 
 
+# --- claim enrollment (TODO 13 task 3, self-service claim) ----------------
+
+def test_enroll_sets_claim_passphrase_hash_for_peer_vouch(client):
+    from betat_community.communityauth.models import PeerVouchRequest
+
+    _peer_vouch_config()
+    response = client.post(reverse('bundledui-enroll'), {
+        'method': 'community_peer_vouching', 'identity': 'newcomer', 'display_name': '',
+        'claim_passphrase': 'a secret only I know', 'claim_passphrase_confirm': 'a secret only I know',
+    })
+    assert response.status_code == 302
+    req = PeerVouchRequest.objects.get(identity='newcomer')
+    assert req.claim_passphrase_hash != ''
+    assert req.claim_passphrase_hash != 'a secret only I know'
+
+
+def test_enroll_rejects_mismatched_claim_passphrase_confirm(client):
+    _peer_vouch_config()
+    response = client.post(reverse('bundledui-enroll'), {
+        'method': 'community_peer_vouching', 'identity': 'newcomer', 'display_name': '',
+        'claim_passphrase': 'one thing', 'claim_passphrase_confirm': 'a different thing',
+    })
+    assert response.status_code == 200  # re-renders the form, no redirect
+    assert b'Claim passphrases do not match' in response.content
+
+
+def test_claim_view_shows_pending_status(client):
+    from betat_community.communityauth.plugins import PeerVouchAuth
+
+    config = _peer_vouch_config()
+    plugin = PeerVouchAuth(config)
+    plugin.enroll({'identity': 'first-member', 'display_name': '', 'claim_passphrase': 'founder secret'})
+
+    response = client.post(reverse('bundledui-claim'), {
+        'identity': 'first-member', 'claim_passphrase': 'founder secret',
+    })
+    assert response.status_code == 200
+    assert b'Still awaiting administrator approval' in response.content
+
+
+def test_claim_view_logs_in_once_promoted(client):
+    from betat_community.communityauth.plugins import PeerVouchAuth
+
+    config = _peer_vouch_config()
+    plugin = PeerVouchAuth(config)
+    # Seed vouchers before enrolling 'newcomer' so it takes the normal
+    # vouch-threshold path, not the founding-admin path (founding is
+    # decided by Provenancier.objects.count() < 2 at enroll() time).
+    _seed_enrolled_vouchers()
+    pending = plugin.enroll({
+        'identity': 'newcomer', 'display_name': '', 'claim_passphrase': 'a secret only I know',
+    })
+    plugin.add_vouch(pending.request_id, 'voucher-seed-0')
+    plugin.add_vouch(pending.request_id, 'voucher-seed-1')
+
+    response = client.post(reverse('bundledui-claim'), {
+        'identity': 'newcomer', 'claim_passphrase': 'a secret only I know',
+    })
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-submit')
+    assert client.session['provenancier_token']
+    assert client.session['provenancier_identity'] == 'newcomer'
+
+
+def test_claim_view_shows_error_for_wrong_passphrase(client):
+    from betat_community.communityauth.plugins import PeerVouchAuth
+
+    config = _peer_vouch_config()
+    PeerVouchAuth(config).enroll({'identity': 'first-member', 'claim_passphrase': 'founder secret'})
+
+    response = client.post(reverse('bundledui-claim'), {
+        'identity': 'first-member', 'claim_passphrase': 'wrong guess',
+    })
+    assert response.status_code == 200
+    assert b'No matching enrollment found' in response.content or b'Invalid identity' in response.content
+
+
+def test_provenancier_login_guidance_links_to_claim_page(client):
+    _config(auth_methods=['community_peer_vouching'])
+    response = client.get(reverse('bundledui-provenancier-login'))
+    assert response.status_code == 200
+    assert reverse('bundledui-claim').encode() in response.content
+
+
+# --- rotate passphrase (TODO 13, Provenancier passphrase rotation) --------
+
+def _passphrase_enrolled(identity='elder-1', passphrase_value='old secret'):
+    from betat_community.communityauth import crypto, passphrase as passphrase_derivation
+    from betat_community.communityauth.plugins import CryptoKeyAuth
+
+    config = CommunityConfig.objects.first()
+    private_key, public_key = passphrase_derivation.derive_keypair(passphrase_value, config.id)
+    proof = crypto.sign(private_key, public_key)
+    CryptoKeyAuth(config).enroll({'identity': identity, 'public_key': public_key, 'signature': proof})
+
+
+def test_rotate_passphrase_view_success_logs_in_with_new_token(client):
+    _config(auth_methods=['cryptographic_signature'])
+    _passphrase_enrolled()
+
+    response = client.post(reverse('bundledui-rotate-passphrase'), {
+        'identity': 'elder-1',
+        'current_passphrase': 'old secret',
+        'new_passphrase': 'new secret',
+        'new_passphrase_confirm': 'new secret',
+    })
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-submit')
+    assert client.session['provenancier_token']
+    assert client.session['provenancier_identity'] == 'elder-1'
+
+
+def test_rotate_passphrase_view_rejects_mismatched_confirm(client):
+    _config(auth_methods=['cryptographic_signature'])
+    _passphrase_enrolled()
+
+    response = client.post(reverse('bundledui-rotate-passphrase'), {
+        'identity': 'elder-1',
+        'current_passphrase': 'old secret',
+        'new_passphrase': 'new secret',
+        'new_passphrase_confirm': 'a different secret',
+    })
+    assert response.status_code == 200
+    assert b'New passphrases do not match' in response.content
+    assert 'provenancier_token' not in client.session
+
+
+def test_rotate_passphrase_view_shows_error_for_wrong_current_passphrase(client):
+    _config(auth_methods=['cryptographic_signature'])
+    _passphrase_enrolled()
+
+    response = client.post(reverse('bundledui-rotate-passphrase'), {
+        'identity': 'elder-1',
+        'current_passphrase': 'wrong guess',
+        'new_passphrase': 'new secret',
+        'new_passphrase_confirm': 'new secret',
+    })
+    assert response.status_code == 200
+    assert 'provenancier_token' not in client.session
+
+
+def test_provenancier_login_links_to_rotate_page(client):
+    _config(auth_methods=['cryptographic_signature'])
+    response = client.get(reverse('bundledui-provenancier-login'))
+    assert response.status_code == 200
+    assert reverse('bundledui-rotate-passphrase').encode() in response.content
+
+
+# --- admin dashboard (TODO 13 task 1, staff-gated) ------------------------
+
+def _staff_client(client, username='verifier-1'):
+    get_user_model().objects.create_user(username=username, password='pw12345!', is_staff=True)
+    client.post(reverse('bundledui-verifier-login'), {'username': username, 'password': 'pw12345!'})
+
+
+def test_admin_dashboard_requires_verifier_login(client):
+    _config()
+    response = client.get(reverse('bundledui-admin'))
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-verifier-login')
+
+
+def test_admin_dashboard_lists_founding_and_normal_requests(client):
+    from betat_community.communityauth.plugins import PeerVouchAuth
+
+    config = _peer_vouch_config()
+    plugin = PeerVouchAuth(config)
+    # Enrolled while 0 Provenanciers exist yet — founding phase (BLUEPRINT
+    # §03 Decision Log, 2026-09-09). Must happen before seeding vouchers
+    # below, or this would also take the normal vouch-threshold path.
+    plugin.enroll({'identity': 'lone-founder', 'display_name': 'Lone Founder'})
+    _seed_enrolled_vouchers()
+    pending = plugin.enroll({'identity': 'newcomer', 'display_name': 'Newcomer'})
+    plugin.add_vouch(pending.request_id, 'voucher-seed-0')
+
+    _staff_client(client)
+    response = client.get(reverse('bundledui-admin'))
+    assert response.status_code == 200
+    assert b'Lone Founder' in response.content
+    assert b'Newcomer' in response.content
+    assert b'1 of 2 vouches' in response.content
+
+
+def test_admin_dashboard_approve_promotes_founding_request(client):
+    from betat_community.communityauth.models import PeerVouchRequest
+    from betat_community.communityauth.plugins import PeerVouchAuth
+
+    config = _peer_vouch_config()
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({'identity': 'lone-founder', 'display_name': 'Lone Founder'})
+
+    _staff_client(client)
+    response = client.post(reverse('bundledui-admin-approve', args=[pending.request_id]))
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-admin')
+    assert not PeerVouchRequest.objects.filter(identity='lone-founder').exists()
+
+
+def test_admin_dashboard_approve_requires_verifier_login(client):
+    from betat_community.communityauth.plugins import PeerVouchAuth
+
+    config = _peer_vouch_config()
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({'identity': 'lone-founder', 'display_name': 'Lone Founder'})
+
+    response = client.post(reverse('bundledui-admin-approve', args=[pending.request_id]))
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-verifier-login')
+
+
+def test_nav_hides_admin_dropdown_for_non_staff(client):
+    _config()
+    response = client.get(reverse('bundledui-records'))
+    assert b'nav-admin-toggle' not in response.content
+
+
+def test_nav_shows_admin_dropdown_for_staff(client):
+    _config()
+    _staff_client(client)
+    response = client.get(reverse('bundledui-records'))
+    assert b'nav-admin-toggle' in response.content
+    assert b'Approve enrollments' in response.content
+
+
+def test_nav_admin_dropdown_links_to_django_password_change(client):
+    _config()
+    _staff_client(client)
+    response = client.get(reverse('bundledui-records'))
+    assert b'Change password' in response.content
+    assert reverse('admin:password_change').encode() in response.content
+
+
 # --- records list / detail ------------------------------------------------
 
 def test_records_list_shows_records(client):
@@ -431,3 +690,53 @@ def test_landing_checklist_links_to_real_docs(client):
     assert b'betat.org/framework-cli.html' in response.content
     assert b'betat.org/framework-api.html' in response.content
     assert b'Not configured yet' not in response.content
+
+
+# --- timeline (Phase 1 placeholder for ROADMAP.md's Phase 2 backfill) -----
+
+def test_timeline_page_redirects_to_installer_when_no_config(client):
+    response = client.get(reverse('bundledui-timeline'))
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-install')
+
+
+def test_timeline_page_shows_not_started_state(client):
+    _config()
+    response = client.get(reverse('bundledui-timeline'))
+    assert response.status_code == 200
+    assert b'backfill agent has not been started' in response.content
+    # No backfill agent exists in v0.1 — an anonymous/non-staff visitor
+    # never sees the admin-only "start the backfill agent" panel.
+    assert b'Administrator: start the backfill agent' not in response.content
+
+
+def test_timeline_page_shows_admin_panel_for_staff(client):
+    config = _config(content_type='scientific_observation')
+    get_user_model().objects.create_user(username='verifier', password='pw12345!', is_staff=True)
+    client.post(reverse('bundledui-verifier-login'), {'username': 'verifier', 'password': 'pw12345!'})
+    response = client.get(reverse('bundledui-timeline'))
+    assert response.status_code == 200
+    assert b'Administrator: start the backfill agent' in response.content
+    assert f'--scope {config.content_type}'.encode() in response.content
+
+
+# --- config context processor (BLUEPRINT §07 Decision Log, 2026-09-12) ---
+
+def test_nav_brand_shows_real_community_name(client):
+    # Before bundledui/context_processors.py existed, base.html's nav brand
+    # and footer always fell through to their |default: fallback text
+    # ("Betat"/blank) since `config` was never in any view's context. The
+    # community's own name is the brand identity (BLUEPRINT §07 Decision
+    # Log, 2026-09-12 correction) — Betat is the underlying protocol,
+    # credited via "Powered by Betat" in the footer, not the brand itself.
+    config = _config(name='Marine Biology Observers')
+    response = client.get(reverse('bundledui-records'))
+    assert response.status_code == 200
+    assert f'<span class="bt-nav-brand-name">{config.name}</span>'.encode() in response.content
+
+
+def test_footer_shows_real_community_id(client):
+    config = _config()
+    response = client.get(reverse('bundledui-records'))
+    assert response.status_code == 200
+    assert config.id.encode() in response.content

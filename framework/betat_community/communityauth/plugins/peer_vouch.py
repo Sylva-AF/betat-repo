@@ -24,6 +24,8 @@ this replaces the earlier answer to the same problem (BLUEPRINT §10,
 instead), which only helped operators who happened to enable that method
 too.
 """
+from django.contrib.auth.hashers import make_password
+
 from ..base import AuthMethod
 from ..enrollment import persist_provenancier
 from ..identity import Pending, ProvenancierIdentity, Rejection
@@ -42,9 +44,17 @@ class PeerVouchAuth(AuthMethod):
 
         display_name = applicant.get('display_name', '')
         founding = Provenancier.objects.count() < 2
-        req, _created = PeerVouchRequest.objects.get_or_create(
-            identity=identity, defaults={'display_name': display_name, 'founding': founding},
-        )
+        defaults = {'display_name': display_name, 'founding': founding}
+        # Optional claim passphrase (TODO 13 task 3): lets this applicant
+        # retrieve their status/token from a different session later via
+        # POST /betat/enroll/claim. Only set on first creation — get_or_create's
+        # defaults are ignored on a repeat call (e.g. the same-session poll
+        # in bundledui's _render_peer_vouch_pending), so a returning poll
+        # can never silently overwrite an already-set claim passphrase.
+        claim_passphrase = (applicant.get('claim_passphrase') or '').strip()
+        if claim_passphrase:
+            defaults['claim_passphrase_hash'] = make_password(claim_passphrase)
+        req, _created = PeerVouchRequest.objects.get_or_create(identity=identity, defaults=defaults)
 
         if req.founding:
             return Pending(
@@ -109,12 +119,19 @@ class PeerVouchAuth(AuthMethod):
         and from communityauth/admin.py's approve_founding_requests action
         for founding requests (public, not _-prefixed, since admin.py is a
         legitimate caller outside this class)."""
+        verification_material = {'vouchers': req.vouchers}
+        if req.claim_passphrase_hash:
+            # Carries the claim secret forward so it keeps working after
+            # promotion (TODO 13 task 3) — /betat/enroll/claim checks
+            # Provenancier.verification_material once no PeerVouchRequest
+            # remains to check against.
+            verification_material['claim_passphrase_hash'] = req.claim_passphrase_hash
         provenancier, _token = persist_provenancier(
             identity=req.identity,
             identity_type='peer_attested',
             authentication_method=self.method_name,
             display_name=req.display_name,
-            verification_material={'vouchers': req.vouchers},
+            verification_material=verification_material,
         )
         req.delete()
         return ProvenancierIdentity(

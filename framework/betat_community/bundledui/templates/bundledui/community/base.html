@@ -26,6 +26,11 @@
      title="Browse the public, verified provenance record archive">
     Records
   </a>
+  <a href="{% url 'bundledui-timeline' %}"
+     class="{% if request.resolver_match.url_name == 'bundledui-timeline' %}bt-active{% endif %}"
+     title="Browse historical content discovered by the backfill agent (Phase 2)">
+    Timeline
+  </a>
   <a href="{% url 'bundledui-enroll' %}"
      class="{% if request.resolver_match.url_name == 'bundledui-enroll' %}bt-active{% endif %}"
      title="Become a verified contributor (Provenancier) to submit content">
@@ -41,6 +46,17 @@
      title="Verifier review queue — requires a staff account">
     Review queue
   </a>
+
+  {% if request.user.is_staff %}
+  <div class="bt-nav-dropdown">
+    <input type="checkbox" id="nav-admin-toggle" class="bt-nav-dropdown-toggle">
+    <label for="nav-admin-toggle" class="bt-nav-dropdown-label">Admin &#9662;</label>
+    <div class="bt-nav-dropdown-menu">
+      <a href="{% url 'bundledui-admin' %}" title="Approve founding-member enrollment requests">Approve enrollments</a>
+      <a href="{% url 'admin:password_change' %}" title="Change your verifier account password">Change password</a>
+    </div>
+  </div>
+  {% endif %}
 
   {% if request.session.provenancier_token %}
   <a href="{% url 'bundledui-provenancier-logout' %}" class="bt-nav-cta"

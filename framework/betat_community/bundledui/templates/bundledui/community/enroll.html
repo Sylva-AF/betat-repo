@@ -129,6 +129,33 @@
       {{ form.institution_id.errors }}
     </div>
 
+    <hr class="bt-divider">
+
+    <div class="bt-help-row" style="margin-bottom:0.75rem">
+      <h2 class="bt-h2">Claim passphrase (optional, peer vouching / institutional only)</h2>
+      <span class="bt-help">
+        <input type="checkbox" id="help-claim-passphrase" class="bt-help-toggle">
+        <label for="help-claim-passphrase" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+        <span class="bt-help-text">Only needed if you enroll via community peer vouching or
+          institutional endorsement. It lets you retrieve your status or token later from a
+          different browser or device, using "Claim your enrollment." Choose something only
+          you would know — it is never shown to community members or administrators, and
+          like every passphrase here, it cannot be recovered if you forget it. Leave both
+          fields blank to skip this — you can still return from the same browser/device you
+          enrolled from.</span>
+      </span>
+    </div>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.claim_passphrase.id_for_label }}">{{ form.claim_passphrase.label }}</label>
+      {{ form.claim_passphrase }}
+      {{ form.claim_passphrase.errors }}
+    </div>
+    <div class="bt-form-group">
+      <label class="bt-label-field" for="{{ form.claim_passphrase_confirm.id_for_label }}">{{ form.claim_passphrase_confirm.label }}</label>
+      {{ form.claim_passphrase_confirm }}
+      {{ form.claim_passphrase_confirm.errors }}
+    </div>
+
     <button type="submit" class="bt-btn-primary">Request enrollment</button>
   </form>
   </div>

@@ -157,6 +157,220 @@ def test_approve_founding_requests_admin_action_skips_non_founding():
     assert PeerVouchRequest.objects.filter(identity='newcomer').exists()
 
 
+# --- /betat/vouch-requests admin dashboard API (TODO 13 task 1) ----------
+
+def _staff_client(username='verifier-1'):
+    user = get_user_model().objects.create_user(username=username, is_staff=True)
+    token = Token.objects.create(user=user)
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+    return client, user
+
+
+def test_vouch_requests_endpoint_requires_staff():
+    _config(peer_vouch_threshold=2)
+    response = APIClient().get(reverse('betat-vouch-requests'))
+    assert response.status_code in (401, 403)
+
+
+def test_vouch_requests_endpoint_lists_normal_requests_with_vouch_progress():
+    config = _config(peer_vouch_threshold=2)
+    _enrolled_voucher('voucher-one')
+    _enrolled_voucher('voucher-two')
+    plugin = PeerVouchAuth(config)
+    plugin.enroll({'identity': 'newcomer', 'display_name': 'Newcomer'})
+    pending = plugin.enroll({'identity': 'partial', 'display_name': 'Partial'})
+    plugin.add_vouch(pending.request_id, 'voucher-one')
+
+    client, _staff = _staff_client()
+    response = client.get(reverse('betat-vouch-requests'))
+    assert response.status_code == 200
+    assert response.data['threshold'] == 2
+    by_identity = {r['identity']: r for r in response.data['requests']}
+    assert by_identity['newcomer']['founding'] is False
+    assert by_identity['newcomer']['vouch_count'] == 0
+    assert by_identity['partial']['vouch_count'] == 1
+
+
+def test_vouch_requests_endpoint_founding_flag_true_for_founding_request():
+    config = _config(peer_vouch_threshold=2)
+    plugin = PeerVouchAuth(config)
+    plugin.enroll({'identity': 'first-member', 'display_name': 'First'})
+
+    client, _staff = _staff_client()
+    response = client.get(reverse('betat-vouch-requests'))
+    assert response.status_code == 200
+    entry = response.data['requests'][0]
+    assert entry['identity'] == 'first-member'
+    assert entry['founding'] is True
+
+
+def test_approve_founding_request_endpoint_promotes():
+    config = _config(peer_vouch_threshold=2)
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({'identity': 'first-member', 'display_name': 'First'})
+
+    client, _staff = _staff_client()
+    response = client.post(reverse('betat-vouch-request-approve', args=[pending.request_id]))
+    assert response.status_code == 200
+    assert response.data['identity'] == 'first-member'
+    assert Provenancier.objects.filter(identity='first-member').exists()
+    assert not PeerVouchRequest.objects.filter(identity='first-member').exists()
+
+
+def test_approve_founding_request_endpoint_rejects_non_founding():
+    config = _config(peer_vouch_threshold=2)
+    _enrolled_voucher('voucher-one')
+    _enrolled_voucher('voucher-two')
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({'identity': 'newcomer', 'display_name': 'Newcomer'})
+
+    client, _staff = _staff_client()
+    response = client.post(reverse('betat-vouch-request-approve', args=[pending.request_id]))
+    assert response.status_code == 400
+    assert response.data['error']['code'] == 'not_a_founding_request'
+    assert not Provenancier.objects.filter(identity='newcomer').exists()
+
+
+def test_approve_founding_request_endpoint_requires_staff():
+    config = _config(peer_vouch_threshold=2)
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({'identity': 'first-member', 'display_name': 'First'})
+
+    response = APIClient().post(reverse('betat-vouch-request-approve', args=[pending.request_id]))
+    assert response.status_code in (401, 403)
+    assert not Provenancier.objects.filter(identity='first-member').exists()
+
+
+# --- /betat/enroll/claim (TODO 13 task 3, self-service claim) ------------
+
+def test_claim_endpoint_requires_identity_and_passphrase():
+    _config(peer_vouch_threshold=2)
+    response = APIClient().post(reverse('betat-enroll-claim'), {'identity': 'newcomer'}, format='json')
+    assert response.status_code == 400
+    assert response.data['error']['code'] == 'missing_credentials'
+
+
+def test_claim_endpoint_returns_pending_vouches_status():
+    config = _config(peer_vouch_threshold=2)
+    _enrolled_voucher('voucher-one')
+    _enrolled_voucher('voucher-two')
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({
+        'identity': 'newcomer', 'display_name': 'Newcomer', 'claim_passphrase': 'a secret only I know',
+    })
+    plugin.add_vouch(pending.request_id, 'voucher-one')
+
+    response = APIClient().post(
+        reverse('betat-enroll-claim'),
+        {'identity': 'newcomer', 'claim_passphrase': 'a secret only I know'},
+        format='json',
+    )
+    assert response.status_code == 202
+    assert response.data['status'] == 'pending_vouches'
+    assert response.data['vouch_count'] == 1
+    assert response.data['vouches_needed'] == 1
+
+
+def test_claim_endpoint_returns_pending_admin_status_for_founding():
+    config = _config(peer_vouch_threshold=2)
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({
+        'identity': 'first-member', 'display_name': 'First', 'claim_passphrase': 'founder secret',
+    })
+
+    response = APIClient().post(
+        reverse('betat-enroll-claim'),
+        {'identity': 'first-member', 'claim_passphrase': 'founder secret'},
+        format='json',
+    )
+    assert response.status_code == 202
+    assert response.data['status'] == 'pending_admin'
+    assert response.data['request_id'] == pending.request_id
+
+
+def test_claim_endpoint_returns_token_once_promoted():
+    config = _config(peer_vouch_threshold=2)
+    _enrolled_voucher('voucher-one')
+    _enrolled_voucher('voucher-two')
+    plugin = PeerVouchAuth(config)
+    pending = plugin.enroll({
+        'identity': 'newcomer', 'display_name': 'Newcomer', 'claim_passphrase': 'a secret only I know',
+    })
+    plugin.add_vouch(pending.request_id, 'voucher-one')
+    plugin.add_vouch(pending.request_id, 'voucher-two')
+
+    response = APIClient().post(
+        reverse('betat-enroll-claim'),
+        {'identity': 'newcomer', 'claim_passphrase': 'a secret only I know'},
+        format='json',
+    )
+    assert response.status_code == 200
+    assert response.data['status'] == 'enrolled'
+    assert response.data['identity'] == 'newcomer'
+    assert response.data['token'] == Token.objects.get(user__provenancier__identity='newcomer').key
+
+
+def test_claim_endpoint_rejects_wrong_passphrase():
+    config = _config(peer_vouch_threshold=2)
+    plugin = PeerVouchAuth(config)
+    plugin.enroll({'identity': 'first-member', 'claim_passphrase': 'founder secret'})
+
+    response = APIClient().post(
+        reverse('betat-enroll-claim'),
+        {'identity': 'first-member', 'claim_passphrase': 'wrong guess'},
+        format='json',
+    )
+    assert response.status_code == 401
+    assert response.data['error']['code'] == 'invalid_credentials'
+
+
+def test_claim_endpoint_rejects_when_no_claim_passphrase_was_set():
+    config = _config(peer_vouch_threshold=2)
+    plugin = PeerVouchAuth(config)
+    plugin.enroll({'identity': 'first-member'})  # no claim_passphrase supplied
+
+    response = APIClient().post(
+        reverse('betat-enroll-claim'),
+        {'identity': 'first-member', 'claim_passphrase': 'anything'},
+        format='json',
+    )
+    assert response.status_code == 401
+    assert response.data['error']['code'] == 'invalid_credentials'
+
+
+def test_claim_endpoint_rejects_unknown_identity():
+    _config(peer_vouch_threshold=2)
+    response = APIClient().post(
+        reverse('betat-enroll-claim'),
+        {'identity': 'nobody', 'claim_passphrase': 'anything'},
+        format='json',
+    )
+    assert response.status_code == 401
+    assert response.data['error']['code'] == 'invalid_credentials'
+
+
+def test_claim_endpoint_works_for_institutional_identity_after_promotion():
+    institution_private_key, institution_public_key = crypto.generate_keypair()
+    config = _config(trusted_institutions={'uni.example.edu': institution_public_key})
+    endorsement = crypto.sign(institution_private_key, 'researcher-1')
+    InstitutionalAuth(config).enroll({
+        'identity': 'researcher-1',
+        'institution_id': 'uni.example.edu',
+        'signature': endorsement,
+        'claim_passphrase': 'institutional secret',
+    })
+
+    response = APIClient().post(
+        reverse('betat-enroll-claim'),
+        {'identity': 'researcher-1', 'claim_passphrase': 'institutional secret'},
+        format='json',
+    )
+    assert response.status_code == 200
+    assert response.data['status'] == 'enrolled'
+    assert response.data['identity'] == 'researcher-1'
+
+
 def test_peer_vouch_enroll_rejects_duplicate_identity():
     config = _config(peer_vouch_threshold=2)
     _enrolled_voucher('existing-member')
@@ -364,6 +578,114 @@ def test_login_endpoint_rejects_wrong_passphrase():
     )
     assert response.status_code == 401
     assert response.data['error']['code'] == 'invalid_credentials'
+
+
+# --- /betat/rotate-passphrase (TODO 13, Provenancier passphrase rotation) -
+
+def test_rotate_passphrase_requires_all_fields():
+    _config()
+    response = APIClient().post(
+        reverse('betat-rotate-passphrase'), {'identity': 'elder-1'}, format='json',
+    )
+    assert response.status_code == 400
+    assert response.data['error']['code'] == 'missing_credentials'
+
+
+def _passphrase_enrolled(config, identity, passphrase_value):
+    private_key, public_key = passphrase.derive_keypair(passphrase_value, config.id)
+    proof = crypto.sign(private_key, public_key)
+    return CryptoKeyAuth(config).enroll({'identity': identity, 'public_key': public_key, 'signature': proof})
+
+
+def test_rotate_passphrase_rejects_same_new_and_current():
+    config = _config()
+    _passphrase_enrolled(config, 'elder-1', 'old secret')
+
+    response = APIClient().post(
+        reverse('betat-rotate-passphrase'),
+        {'identity': 'elder-1', 'current_passphrase': 'old secret', 'new_passphrase': 'old secret'},
+        format='json',
+    )
+    assert response.status_code == 400
+    assert response.data['error']['code'] == 'same_passphrase'
+
+
+def test_rotate_passphrase_rejects_wrong_current_passphrase():
+    config = _config()
+    _passphrase_enrolled(config, 'elder-1', 'old secret')
+
+    response = APIClient().post(
+        reverse('betat-rotate-passphrase'),
+        {'identity': 'elder-1', 'current_passphrase': 'wrong guess', 'new_passphrase': 'new secret'},
+        format='json',
+    )
+    assert response.status_code == 401
+    assert response.data['error']['code'] == 'invalid_credentials'
+
+
+def test_rotate_passphrase_rejects_unknown_identity():
+    _config()
+    response = APIClient().post(
+        reverse('betat-rotate-passphrase'),
+        {'identity': 'nobody', 'current_passphrase': 'x', 'new_passphrase': 'y'},
+        format='json',
+    )
+    assert response.status_code == 401
+    assert response.data['error']['code'] == 'invalid_credentials'
+
+
+def test_rotate_passphrase_success_updates_public_key_and_rotates_token():
+    config = _config()
+    _passphrase_enrolled(config, 'elder-1', 'old secret')
+    old_token = Token.objects.get(user__provenancier__identity='elder-1').key
+
+    response = APIClient().post(
+        reverse('betat-rotate-passphrase'),
+        {'identity': 'elder-1', 'current_passphrase': 'old secret', 'new_passphrase': 'new secret'},
+        format='json',
+    )
+    assert response.status_code == 200
+    assert response.data['identity'] == 'elder-1'
+    new_token = response.data['token']
+    assert new_token != old_token
+    assert not Token.objects.filter(key=old_token).exists()
+    assert Token.objects.filter(key=new_token).exists()
+
+    provenancier = Provenancier.objects.get(identity='elder-1')
+    _, expected_public_key = passphrase.derive_keypair('new secret', config.id)
+    assert provenancier.verification_material['public_key'] == expected_public_key
+
+    # Old passphrase no longer works; new one does.
+    old_login = APIClient().post(
+        reverse('betat-login'), {'identity': 'elder-1', 'passphrase': 'old secret'}, format='json',
+    )
+    assert old_login.status_code == 401
+    new_login = APIClient().post(
+        reverse('betat-login'), {'identity': 'elder-1', 'passphrase': 'new secret'}, format='json',
+    )
+    assert new_login.status_code == 200
+    assert new_login.data['token'] == new_token
+
+
+def test_rotate_passphrase_old_token_no_longer_authenticates():
+    config = _config()
+    _passphrase_enrolled(config, 'elder-1', 'old secret')
+    old_token = Token.objects.get(user__provenancier__identity='elder-1').key
+
+    APIClient().post(
+        reverse('betat-rotate-passphrase'),
+        {'identity': 'elder-1', 'current_passphrase': 'old secret', 'new_passphrase': 'new secret'},
+        format='json',
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Token {old_token}')
+    response = client.post(
+        reverse('betat-submit'),
+        {'title': '', 'location': 'https://example.org/x', 'content_hash': 'sha256:x', 'language': 'en', 'declaration_accepted': True},
+        format='json',
+    )
+    assert response.status_code == 401
 
 
 # --- CryptoKeyAuth -------------------------------------------------------

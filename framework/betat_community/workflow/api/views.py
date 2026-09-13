@@ -19,13 +19,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from betat_community.common.errors import error_response
+from betat_community.common.permissions import IsVerifier
 from betat_community.core.announce import AnnounceError, send_announcement
 from betat_community.core.models import CommunityConfig
 from betat_community.store import store
 
 from ..models import Submission
 from ..record_builder import build_record
-from .mixins import IsVerifier
 from .serializers import ReviewRequestSerializer, SubmissionSerializer, SubmitRequestSerializer
 
 logger = logging.getLogger(__name__)

@@ -48,6 +48,17 @@ class EnrollForm(forms.Form):
         label='Institution id', required=False,
         widget=forms.TextInput(attrs={'placeholder': 'e.g. your-institution.org'}),
     )
+    # community_peer_vouching / institutional_endorsement — optional claim
+    # passphrase (TODO 13 task 3). Not sent through applicant_payload()
+    # below (same as passphrase/passphrase_confirm above) — enroll_view
+    # confirm-checks it and injects it into the applicant dict itself.
+    claim_passphrase = forms.CharField(
+        label='Claim passphrase (optional)',
+        required=False, widget=forms.PasswordInput(render_value=False),
+    )
+    claim_passphrase_confirm = forms.CharField(
+        label='Confirm claim passphrase', required=False, widget=forms.PasswordInput(render_value=False),
+    )
 
     def __init__(self, *args, auth_methods=(), **kwargs):
         super().__init__(*args, **kwargs)

@@ -82,6 +82,16 @@ def enroll_view(request):
                 applicant['public_key'] = public_key_hex
                 applicant['signature'] = communityauth_crypto.sign(private_key_hex, public_key_hex)
 
+            # Optional claim passphrase (TODO 13 task 3, community_peer_vouching/
+            # institutional_endorsement only — cryptographic_signature already
+            # has its own returning-login passphrase above, no need to duplicate).
+            claim_passphrase = form.cleaned_data.get('claim_passphrase', '').strip()
+            if method in ('community_peer_vouching', 'institutional_endorsement') and claim_passphrase:
+                if claim_passphrase != form.cleaned_data.get('claim_passphrase_confirm', '').strip():
+                    messages.error(request, 'Claim passphrases do not match.')
+                    return render(request, 'bundledui/community/enroll.html', {'form': form, 'community': info})
+                applicant['claim_passphrase'] = claim_passphrase
+
             status, data = api.post('/betat/enroll', {'method': method, 'applicant': applicant})
             if status == 201:
                 request.session['provenancier_token'] = data['token']
@@ -185,15 +195,28 @@ def provenancier_login_view(request):
     "no returning-provenancier login flow" gap). A thin ApiClient consumer of
     POST /betat/login — the actual re-derivation/comparison happens server-side
     in CryptoKeyLoginView, keeping this view free of ORM shortcuts like every
-    other bundledui view. Peer-vouch/institutional provenanciers have no login
-    path here, unchanged from before."""
+    other bundledui view.
+
+    Peer-vouch/institutional provenanciers have no login path here — TODO 13
+    (2026-09-12): rather than always rendering a passphrase form that can
+    never work for them, this reads the community's configured auth_methods
+    (same /betat/info call enroll_view already makes) and only shows the form
+    when cryptographic_signature is actually enabled. When another method is
+    *also* enabled, the form still renders (a crypto-signature identity can
+    still log in) but with a note that it doesn't cover the other method —
+    the "multiple methods" middle case from this TODO's task list."""
+    api = ApiClient(server_name=request.get_host())
+    info_status, info = api.get('/betat/info')
+    auth_methods = info.get('auth_methods', []) if info_status == 200 else []
+    passphrase_login_available = 'cryptographic_signature' in auth_methods
+    other_methods_enabled = bool(set(auth_methods) - {'cryptographic_signature'})
+
     if request.method == 'POST':
         identity = request.POST.get('identity', '').strip()
         passphrase = request.POST.get('passphrase', '').strip()
         if not identity or not passphrase:
             messages.error(request, 'Identity and passphrase are required.')
         else:
-            api = ApiClient(server_name=request.get_host())
             status, data = api.post('/betat/login', {'identity': identity, 'passphrase': passphrase})
             if status == 200:
                 request.session['provenancier_token'] = data['token']
@@ -202,7 +225,77 @@ def provenancier_login_view(request):
                 return redirect('bundledui-submit')
             messages.error(request, data.get('error', {}).get('message', 'Login failed.'))
 
-    return render(request, 'bundledui/community/provenancier_login.html')
+    return render(request, 'bundledui/community/provenancier_login.html', {
+        'passphrase_login_available': passphrase_login_available,
+        'other_methods_enabled': other_methods_enabled,
+    })
+
+
+def claim_enrollment_view(request):
+    """GET/POST /community/claim (TODO 13 task 3) — self-service retrieval
+    for a community_peer_vouching/institutional_endorsement applicant
+    returning from a different session/device than the one they enrolled
+    from, using the optional claim_passphrase they set at enroll time
+    (enroll_view above). Thin ApiClient POST to POST /betat/enroll/claim —
+    the actual proof check happens server-side in ClaimEnrollmentView,
+    same separation as every other bundledui action view."""
+    result = None
+    if request.method == 'POST':
+        identity = request.POST.get('identity', '').strip()
+        claim_passphrase = request.POST.get('claim_passphrase', '').strip()
+        if not identity or not claim_passphrase:
+            messages.error(request, 'Identity and claim passphrase are required.')
+        else:
+            api = ApiClient(server_name=request.get_host())
+            status, data = api.post(
+                '/betat/enroll/claim', {'identity': identity, 'claim_passphrase': claim_passphrase},
+            )
+            if status == 200:
+                request.session['provenancier_token'] = data['token']
+                request.session['provenancier_identity'] = data['identity']
+                messages.success(request, f"Welcome back, '{data['identity']}'.")
+                return redirect('bundledui-submit')
+            if status == 202:
+                result = data
+            else:
+                messages.error(request, data.get('error', {}).get('message', 'No matching enrollment found.'))
+
+    return render(request, 'bundledui/community/claim.html', {'result': result})
+
+
+def rotate_passphrase_view(request):
+    """GET/POST /community/rotate-passphrase (TODO 13, Provenancier
+    passphrase rotation) — lets a cryptographic_signature/passphrase
+    identity change their passphrase from any session, proving ownership
+    by supplying their *current* passphrase rather than needing an active
+    login first (BLUEPRINT §03 2026-09-13 Decision Log). Thin ApiClient
+    POST to POST /betat/rotate-passphrase; on success this session's own
+    token/identity are updated too, since rotation invalidates whatever
+    token existed before (including one this same session might hold)."""
+    if request.method == 'POST':
+        identity = request.POST.get('identity', '').strip()
+        current_passphrase = request.POST.get('current_passphrase', '').strip()
+        new_passphrase = request.POST.get('new_passphrase', '').strip()
+        new_passphrase_confirm = request.POST.get('new_passphrase_confirm', '').strip()
+        if not identity or not current_passphrase or not new_passphrase:
+            messages.error(request, 'Identity, current passphrase, and new passphrase are required.')
+        elif new_passphrase != new_passphrase_confirm:
+            messages.error(request, 'New passphrases do not match.')
+        else:
+            api = ApiClient(server_name=request.get_host())
+            status, data = api.post('/betat/rotate-passphrase', {
+                'identity': identity,
+                'current_passphrase': current_passphrase,
+                'new_passphrase': new_passphrase,
+            })
+            if status == 200:
+                request.session['provenancier_token'] = data['token']
+                request.session['provenancier_identity'] = data['identity']
+                messages.success(request, 'Passphrase rotated. You are logged in with your new passphrase.')
+                return redirect('bundledui-submit')
+            messages.error(request, data.get('error', {}).get('message', 'Could not rotate passphrase.'))
+
+    return render(request, 'bundledui/community/rotate_passphrase.html')
 
 
 def provenancier_logout_view(request):
@@ -302,6 +395,51 @@ def review_action_view(request, submission_id):
     return redirect('bundledui-queue')
 
 
+def admin_dashboard_view(request):
+    """Staff-gated operator dashboard (TODO 13 task 1) — lists pending
+    PeerVouchRequests (founding + normal, with vouch progress) so an
+    operator can approve founding-member enrollments without ever
+    visiting /admin/. Reuses _verifier_token()/ApiClient like queue_view;
+    no PeerVouchRequest/CommunityConfig ORM access here — this view
+    consumes GET /betat/vouch-requests, same public-API-only rule as
+    every other bundledui view (see module docstring)."""
+    token = _verifier_token(request)
+    if not token:
+        return redirect('bundledui-verifier-login')
+
+    status, data = ApiClient(token=token, server_name=request.get_host()).get('/betat/vouch-requests')
+    if status != 200:
+        messages.error(request, 'Could not load pending enrollment requests.')
+        data = {'threshold': None, 'requests': []}
+
+    return render(request, 'bundledui/community/admin_dashboard.html', {
+        'founding_requests': [r for r in data['requests'] if r['founding']],
+        'normal_requests': [r for r in data['requests'] if not r['founding']],
+        'threshold': data['threshold'],
+    })
+
+
+def approve_founding_request_view(request, request_id):
+    """POST /community/admin/approve/<id> — the one-click Approve button
+    on admin_dashboard_view's founding-requests list. Thin ApiClient POST
+    to POST /betat/vouch-requests/{id}/approve; the actual promotion logic
+    (PeerVouchAuth.promote()) runs server-side in ApproveFoundingRequestView,
+    same separation every other bundledui action view keeps."""
+    if request.method != 'POST':
+        return redirect('bundledui-admin')
+    token = _verifier_token(request)
+    if not token:
+        return redirect('bundledui-verifier-login')
+
+    api = ApiClient(token=token, server_name=request.get_host())
+    status, data = api.post(f'/betat/vouch-requests/{request_id}/approve', {})
+    if status == 200:
+        messages.success(request, f"Approved '{data['identity']}' as a founding member.")
+    else:
+        messages.error(request, data.get('error', {}).get('message', 'Approval failed.'))
+    return redirect('bundledui-admin')
+
+
 def records_list_view(request):
     current_page = int(request.GET.get('page', 1))
     params = {'page': current_page}
@@ -349,6 +487,16 @@ def record_detail_view(request, record_id):
 # free, for exactly this (see BLUEPRINT §11 Decision Log).
 DOCS_CLI = 'https://betat.org/framework-cli.html'
 DOCS_API = 'https://betat.org/framework-api.html'
+
+
+def timeline_view(request):
+    """Phase 1 placeholder for the Timeline nav tab (ROADMAP.md Phase 2 —
+    backfill/timeline). No backfill agent exists yet in v0.1, so this
+    always renders the "not started" state — there is no `backfill_started`
+    signal to check yet. `config` (used for the admin panel's example
+    command) comes from bundledui/context_processors.py, same as every
+    other template."""
+    return render(request, 'bundledui/community/timeline.html')
 
 
 def install_view(request):
