@@ -1,6 +1,6 @@
 # TODO 11 — Documentation Site
 
-> Status: in progress — content complete locally; **not yet live** — the new files have never actually been pushed (see "Still to do", this is the very next thing to fix)
+> Status: likely done — **re-checked 2026-09-13**: `framework-cli.md`, `framework-api.md`, `framework-store.md`, `framework-reference.md`, and `CONTRIBUTING.md` all exist at the repo root and show as neither modified nor untracked in `git status` (branch up to date with `origin/main`), meaning they're already committed and pushed. This contradicts this file's own prior status line claiming they were stranded — that was stale, not current. **Not yet confirmed: whether the live site actually resolves** (`betat.org/framework-cli.html` etc.) — GitHub Pages build could theoretically still be broken even with correct source committed. Developer should check the live URLs once, then flip this file and `TODO.md`'s row 11 to `done`.
 > Blueprint: [§11](../BLUEPRINT.md) · Spec: COMMUNITY_FRAMEWORK.md → "Documentation Standard"
 > Depends on: 01-09 (documents what they built) · Blocks: nothing
 
