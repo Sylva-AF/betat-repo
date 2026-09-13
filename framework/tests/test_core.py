@@ -95,3 +95,45 @@ def test_init_does_not_overwrite_existing_manage_py(tmp_path, monkeypatch):
     manage_py.write_text("# custom, do not touch\n")
     _init()
     assert manage_py.read_text() == "# custom, do not touch\n"
+
+
+def test_prompt_auth_methods_rejects_invalid_then_reprompts(tmp_path, monkeypatch):
+    # Regression test for the 2026-09-09 fresh-venv bug: an invalid entry at
+    # the interactive auth-methods prompt (e.g. a human-readable guess like
+    # "Peer Vouch" instead of the real key) used to sail straight through to
+    # config.save() and blow up with a raw CommandError, discarding every
+    # prior answer. _prompt_auth_methods() must loop-validate in place
+    # instead, like _prompt_choice() already does for content_type.
+    monkeypatch.chdir(tmp_path)
+    with patch(
+        "builtins.input",
+        side_effect=["Peer Vouch", "community_peer_vouching", "yes", "test-operator@example.org"],
+    ):
+        call_command(
+            "init",
+            id="example.org",
+            name="Example Community",
+            domain="marine biology",
+            content_type="scientific_observation",
+            store_uri="https://example.org/records",
+        )
+    config = CommunityConfig.objects.get(id="example.org")
+    assert config.auth_methods == ["community_peer_vouching"]
+
+
+def test_prompt_auth_methods_rejects_blank_entry(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with patch(
+        "builtins.input",
+        side_effect=["", "community_peer_vouching", "yes", "test-operator@example.org"],
+    ):
+        call_command(
+            "init",
+            id="example.org",
+            name="Example Community",
+            domain="marine biology",
+            content_type="scientific_observation",
+            store_uri="https://example.org/records",
+        )
+    config = CommunityConfig.objects.get(id="example.org")
+    assert config.auth_methods == ["community_peer_vouching"]

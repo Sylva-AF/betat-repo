@@ -1,6 +1,6 @@
 # TODO 12 — Packaging & Production Guide
 
-> Status: in progress — packaging decision made and implemented (SQLite-default ship, `BETAT_DB` for PostgreSQL, no code changes either way); production guide written; `betat init` now writes `manage.py`; wheel/sdist built and `twine check` passed 2026-09-08; fresh-venv install check passed end-to-end 2026-09-09 after three real bugs found and fixed (migrate-ordering, auth-methods prompt UX, missing templates/static in the wheel — see updates below). A fourth bug (peer-vouch bootstrap catch-22) found and fixed 2026-09-09, code-complete but explicitly deferred (not migrated/tested/rebuilt) — **however, as of 2026-09-10 the migration and code landed on `main` anyway** (commit `7e982d9`), unintentionally: it had been `git add`-ed in a prior session and sat staged until an unrelated commit swept it in. **The verification pipeline still has NOT run against it** — no `pytest` run against the actual migration, no wheel rebuild, no fresh-venv check. **Start here next session: "Update 2026-09-10 — session deferred" (near the bottom of this file) has the consolidated script** — steps 1-2 (migrate/test) are now redundant with what's on `main` but safe to re-run for confirmation; steps 3-6 (rebuild, fresh-venv verify) are still the real gap. Also see the correction note right below this line.
+> Status: in progress — packaging decision made and implemented (SQLite-default ship, `BETAT_DB` for PostgreSQL, no code changes either way); production guide written; `betat init` now writes `manage.py`; wheel/sdist built and `twine check` passed 2026-09-08; fresh-venv install check passed end-to-end 2026-09-09 after three real bugs found and fixed (migrate-ordering, auth-methods prompt UX, missing templates/static in the wheel — see updates below). A fourth bug (peer-vouch bootstrap catch-22) found and fixed 2026-09-09, landed on `main` 2026-09-10 (commit `7e982d9`) unintentionally (swept in by an unrelated commit) but unverified at the time. **2026-09-12: verified — `pytest tests/` is now 140/140 green** (134 prior + 2026-09-10's founding-phase tests + 2 new auth_methods-prompt tests added 2026-09-12), confirming the migration and founding-phase code actually work, not just that they exist on disk. **2026-09-13: `git rm betat_community/settings_production.py` done** (developer-confirmed; verified absent on disk this session). **Remaining gap is steps 5-6 of the "Update 2026-09-10" consolidated script** near the bottom of this file: rebuild the wheel (still predates the founding-phase fix, the CI workflow, and everything TODO 13 added), fresh-venv verify — plus the still-untouched dual-DB Postgres gate and production-guide dry run. Also worth noting: the wheel rebuild now needs to happen *after* TODO 13's work too, not just the founding-phase fix, since a wheel built before today would ship without the operator dashboard/claim/rotation endpoints.
 > Blueprint: [§12](../BLUEPRINT.md) · Spec: COMMUNITY_FRAMEWORK.md → "Design Goal 4", "storage engines"
 > Depends on: 01-10 · Blocks: seed release
 > Read alongside: [DISTRIBUTION.md](../DISTRIBUTION.md) — the authoritative build/publish guide for this section
@@ -37,7 +37,7 @@
 
 ### Files written/changed this section
 - `betat_community/settings.py` — removed the two commented-out dev-only Postgres blocks (inline credentials); `DATABASES` now built via `dj_database_url.config(env='BETAT_DB', default=<sqlite path>)` — same env var as before, now URL-capable for both engines, permanently (not stripped before a release build)
-- `betat_community/settings_production.py` — **retired**, tried and corrected mid-session (see BLUEPRINT §12 Decision Log). Currently neutered to a one-line stub with a removal note — **`git rm` this file**
+- `betat_community/settings_production.py` — **retired**, tried and corrected mid-session (see BLUEPRINT §12 Decision Log). Neutered to a one-line stub with a removal note, then **`git rm`'d 2026-09-13** (developer-confirmed, verified absent on disk) — no longer referenced anywhere.
 - `betat_community/core/management/commands/init.py` — `handle()` now calls `_write_manage_py()` right after `_write_env_record()`; writes the standard Django `manage.py` (verbatim `django-admin startproject` template content) to the working directory if one doesn't already exist
 - `pyproject.toml` — added PyPI metadata block (readme/keywords/classifiers/urls) per DISTRIBUTION.md; `psycopg[binary]`/`dj-database-url` confirmed as plain dependencies, not an extra
 - `DISTRIBUTION.md` — corrected in place (not append-only there, unlike BLUEPRINT's Decision Log): "What ships" and the pre-release checklist no longer say to strip `settings.py`'s Postgres path before building
@@ -62,10 +62,11 @@ PostgreSQL table ownership can't be stripped by REVOKE — an owner always retai
    python manage.py migrate                                   # SQLite, zero config
    ```
 3. **Dry-run `framework-production.md`** once against a real PostgreSQL instance (local Docker Postgres is fine) — confirm the role setup and the REVOKE actually blocks a raw UPDATE/DELETE as the app role. This is the one part of this section not yet exercised for real.
-4. `git rm betat_community/settings_production.py` — retired, no longer referenced anywhere.
-5. Once 1–4 are clean, flip this file's status to `done`, update `TODO.md`'s row 12, and proceed to the actual PyPI publish per DISTRIBUTION.md (register the `betat-community` name first if not already done).
-6. Optional/unblocked-not-required: wire `pytest tests/` as a CI gate (TODO 10's last open checkbox).
+4. ~~`git rm betat_community/settings_production.py` — retired, no longer referenced anywhere.~~ — **done 2026-09-13** (developer-confirmed, verified absent on disk).
+5. Once 1–3 are clean, flip this file's status to `done`, update `TODO.md`'s row 12, and proceed to the actual PyPI publish per DISTRIBUTION.md (register the `betat-community` name first if not already done).
+6. ~~Optional/unblocked-not-required: wire `pytest tests/` as a CI gate (TODO 10's last open checkbox).~~ — **done**: `.github/workflows/tests.yml` (repo root — GitHub Actions requires this location regardless of the Jekyll `framework/` exclusion) runs on push/PR touching `framework/**`, installs `./framework[dev]`, and runs `pytest tests/` from `framework/` against the SQLite default (no `BETAT_DB` set) — the two guard-trigger tests run normally in CI since they're SQLite-only. Not yet exercised by an actual push (developer action — will run on the next push/PR that touches `framework/**`).
 7. ~~Worth a follow-up: add a direct unit test for `_write_manage_py()`'s actual write path~~ — **done**: `tests/test_core.py::test_init_writes_manage_py` and `::test_init_does_not_overwrite_existing_manage_py` now cover both the write and no-op branches via `tmp_path`/`monkeypatch.chdir`. Not yet run (developer runs pytest) — expected to pass alongside the existing 95.
+8. ~~Worth a follow-up unit test for the `_prompt_auth_methods()` interactive-validation fix (flagged in the 2026-09-09 update below, no coverage at the time)~~ — **done**: `tests/test_core.py::test_prompt_auth_methods_rejects_invalid_then_reprompts` and `::test_prompt_auth_methods_rejects_blank_entry` exercise the real interactive prompt (no `auth_methods` kwarg, `builtins.input` patched) with an invalid entry followed by a valid one, and a blank entry followed by a valid one — confirming the loop re-prompts without losing the community id/name/domain/content_type/store_uri answers already given. Not yet run (developer runs pytest) — expected to pass alongside the existing suite.
 
 ### Update 2026-09-08 — first wheel/sdist build attempt
 
@@ -348,10 +349,10 @@ python manage.py migrate
 # 2. Full test suite — expect 138 (133 previous + 5 new)
 pytest tests/
 
-# 3. Retire the superseded settings module (still present as a stub —
-#    confirmed not yet removed as of 2026-09-10)
-cd /workspace
-git rm framework/betat_community/settings_production.py
+# 3. Retire the superseded settings module — DONE 2026-09-13
+#    (developer-confirmed `git rm`, verified absent on disk)
+# cd /workspace
+# git rm framework/betat_community/settings_production.py
 
 # 4. Sanity check
 cd /workspace/framework
@@ -426,6 +427,46 @@ this session** (commit `7e982d9`) — but the commit was NOT scoped to just
 these 3 files; see the correction note above ("session deferred, then
 corrected") for what else rode along and why.
 
+### Update 2026-09-12 — CI gate + auth_methods prompt test coverage (code-writing only, nothing run)
+
+Continuing this section per the "Still to do" list above. Two of the
+remaining "developer actions" items were actually code-writable, not
+run-only, so they got picked up:
+
+- **Item 6 (CI gate):** added `.github/workflows/tests.yml` at the repo
+  root (not `framework/` — GitHub Actions only discovers workflows at the
+  repo root, and this is unaffected by `_config.yml`'s Jekyll exclusion of
+  `framework/`, which is a separate build). Triggers on push/PR touching
+  `framework/**`, installs `./framework[dev]`, runs `pytest tests/` from
+  `framework/`. No `BETAT_DB` is set, so it runs against the SQLite
+  default — the two permanently-skipped guard-trigger tests are SQLite-only
+  and will run normally here, not skip.
+- **Item 8 (new, was item 7's neighbor — the auth_methods prompt test gap
+  flagged in the 2026-09-09 update below):** added
+  `tests/test_core.py::test_prompt_auth_methods_rejects_invalid_then_reprompts`
+  and `::test_prompt_auth_methods_rejects_blank_entry`. Both call `init`
+  without an `auth_methods` kwarg (forcing the real interactive
+  `_prompt_auth_methods()` path) and patch `builtins.input` with an
+  invalid/blank entry followed by a valid one — asserting the final
+  `CommunityConfig.auth_methods` is correct, i.e. the loop re-prompts in
+  place rather than losing the id/name/domain/content_type/store_uri
+  answers already given (the exact failure mode of the original bug).
+
+**Confirmed by the developer, same day:** `pytest tests/` — **140/140
+passed** (134 prior — 133 + the 2026-09-10 founding-phase migration's
+tests, which per that update's own accounting had never actually been run
+before — plus the 2 new auth_methods-prompt tests here). This is the
+first confirmed green run since the founding-phase migration landed on
+`main`, i.e. it closes steps 1-2 of the "Update 2026-09-10" consolidated
+script below (migrate/test), not just the new tests added this session.
+Steps 3-6 of that script (retire `settings_production.py`, rebuild the
+wheel, fresh-venv verify) are still open — the currently-built wheel
+predates both the founding-phase fix and this session's CI workflow.
+
+Files changed: `.github/workflows/tests.yml` (new), `tests/test_core.py`
+(2 new tests), `todos/12-packaging.md` (this file — items 6 and 8 marked
+done with detail).
+
 ### Also this session (unrelated to §12) — peer-vouch pending-state UI + nav polish
 
 Not part of packaging — flagging here only because it's this session's
@@ -466,3 +507,22 @@ time (`TODO.md` still shows this section `in progress`).
   community/enroll_pending.html` (new), `bundledui/templates/bundledui/
   community/base.html`, `bundledui/static/bundledui/styles/betat.css`,
   `BLUEPRINT.md` (§03 Decision Log), `tests/test_bundledui.py`.
+
+### Update 2026-09-13 — settings_production.py removed; TODO 13 landed in between
+
+The developer confirmed `git rm betat_community/settings_production.py` was
+done in a prior session — verified absent on disk this session (item 4 of
+"Still to do" above, step 3 of the "Update 2026-09-10" script). That closes
+the last purely-mechanical leftover from the settings_production saga.
+
+Separately, all of TODO 13 (operator dashboard, adaptive login, claim
+endpoint, passphrase rotation, verifier password-change link) landed on top
+of this section's code between 2026-09-12 and 2026-09-13 — new API
+endpoints, new models field (`PeerVouchRequest.claim_passphrase_hash`,
+migrated), new bundledui routes/templates. This means **the wheel rebuild
+in "Still to do" item 2 now needs to happen after TODO 13, not just after
+the founding-phase fix** — a wheel built from the pre-TODO-13 tree would
+ship without any of it. Full suite confirmed green at 185 tests as of
+TODO 13's close-out (see BLUEPRINT §03/§07's 2026-09-13 Decision Log
+entries), but that's `pytest tests/` against the source tree, not a rebuilt
+wheel — items 1-3 of "Still to do" above are all still genuinely open.
