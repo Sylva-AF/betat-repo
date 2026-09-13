@@ -455,3 +455,68 @@ before wiring the wizard in.
    hasn't been exercised against a running server).
 3. Decide when to scope the actual setup-wizard backend (views/urls/session
    state) as its own task — not started.
+
+## Update 2026-09-12 — Timeline nav tab (Phase 1 placeholder for ROADMAP.md's Phase 2 backfill)
+
+v0.2 prep work, requested ahead of the v0.1 final build. `framework/betat-timeline/`
+supplied a placeholder template, a ROADMAP.md Phase 2 section, and a PROVENANCE_SPEC
+amendment; `framework/betat-network/` supplied pure-documentation Phase 2 design content
+(BLUEPRINT Decision Log entries + a ROADMAP.md section, explicitly no v0.1 code per its own
+`sandbox_note.md`). Both are now integrated:
+
+- **`ROADMAP.md` created at `framework/ROADMAP.md`** — did not exist before this session,
+  despite being referenced by this file's own 2026-08-27 update and BLUEPRINT §07/§11.
+  Contains the v0.1 summary plus both Phase 2 sections (timeline/backfill, then
+  cross-community network, in that order per the supplied files' own sequencing).
+- **PROVENANCE_SPEC.md** — added two optional `content` fields now, in v0.1, specifically
+  so Phase 2's backfill agent won't need a schema migration later: `original_creation_date`
+  and `original_creation_date_precision`. See BLUEPRINT §05 Decision Log, 2026-09-12.
+- **New `bundledui-timeline` route** (`/community/timeline`) — `timeline_view` in
+  `views.py`, `timeline.html` in `templates/bundledui/community/`, nav link added to
+  `base.html` between Records and Enroll. Gated by `BetatConfiguredMiddleware` like every
+  other community page (not in the middleware's exempt list) — no changes needed there.
+  **Deliberately simpler than the supplied placeholder file:** dropped the "agent has run"
+  branch (decade grid + `loadDecade()` JS stub) entirely, since no backfill agent exists in
+  v0.1 to ever make that branch reachable — shipping dead code with a fake decade selector
+  seemed worse than a page that's honest about being Phase 1. The admin-only panel showing
+  the future `betat backfill start` command stays (informational only, not a live control).
+- **Found and fixed while wiring this in:** `bundledui` had no context processor
+  supplying `config` to templates — `base.html`'s `{{ config.name }}`/`{{ config.id }}`
+  had silently rendered fallback text on every page since §07 shipped. Fixed with a new
+  `bundledui/context_processors.py` (`config(request)` → `{'config': CommunityConfig.objects.first()}`),
+  registered in `settings.py`. Purely additive — no existing view's context dict changed.
+  See BLUEPRINT §07 Decision Log, 2026-09-12 — including a same-day back-and-forth over
+  whether the nav brand should show `config.name` or a fixed "Betat": settled on
+  `config.name` (each sovereign community is its own brand; Betat is the "Powered by"
+  credit in the footer, not the primary identity), which is what the fix above already
+  produces — no template change needed beyond the context processor itself.
+- **Brand styling, same day:** `.bt-nav-brand-name` now reads as a logotype instead of
+  blending into the nav's section links — 19px/700 weight (was 15px/500), tighter
+  letter-spacing, `.bt-eclipse` icon enlarged 24px→30px to match, brand-to-icon gap
+  10px→12px. `betat.css` only; no template/view/test changes needed (no test asserted on
+  the old values). Locked for v0.1, explicitly open to revisit — see BLUEPRINT §07
+  Decision Log, 2026-09-12.
+
+**Confirmed 2026-09-12: `pytest tests/` — 145/145 passed** (144 prior + 1 net new —
+`test_footer_shows_real_community_id` alongside the renamed `test_nav_brand_shows_real_community_name`).
+Browser eyeball check of the brand styling and footer/nav split is still a developer action.
+- **Tests added** (`tests/test_bundledui.py`): `test_timeline_page_redirects_to_installer_when_no_config`,
+  `test_timeline_page_shows_not_started_state`, `test_timeline_page_shows_admin_panel_for_staff`,
+  `test_nav_shows_real_community_name_and_id` (covers the context-processor fix).
+  Not yet run this session (developer runs `pytest tests/`).
+- **Not done — documentation-only per `sandbox_note.md`, correctly**: no `cross_community`
+  enrollment path type, no recognition-request UI, no source-token verification, no registry
+  trust declarations or network graph field. All Phase 2, all just documented in
+  `ROADMAP.md`/`BLUEPRINT.md` this pass, per the supplied files' own explicit scope.
+
+**Confirmed 2026-09-12: `pytest tests/` — 144/144 passed** (140 prior + 4 new: the 3
+timeline tests plus `test_nav_shows_real_community_name_and_id` for the context-processor
+fix). `framework/betat-timeline/` and `framework/betat-network/` have been deleted by the
+developer — their content now lives only in `ROADMAP.md`, `PROVENANCE_SPEC.md`,
+`BLUEPRINT.md`, and `bundledui` proper.
+
+**Still open (developer action):** browser check — visit `/community/timeline` and
+confirm the not-started banner renders, and (logged in as staff) the admin panel shows
+the real `content_type` interpolated into the example command. Also confirm the nav
+brand/footer now show the real community name/id on any community page, not the old
+"Betat"/blank fallback.

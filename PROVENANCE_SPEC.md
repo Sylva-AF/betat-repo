@@ -73,7 +73,10 @@ Provenance records are expressed in JSON. The format is open, human-readable, an
     "title": "<optional title or short description>",
     "location": "<URI, DOI, IPFS hash, or other persistent locator>",
     "content_hash": "<sha256 hash of the content at time of submission>",
-    "language": "<ISO 639-1 language code>"
+    "language": "<ISO 639-1 language code>",
+
+    "original_creation_date": "<optional ISO 8601 date; see field definitions>",
+    "original_creation_date_precision": "<optional 'day'/'month'/'year'; see field definitions>"
   },
 
   "community": {
@@ -136,6 +139,12 @@ A persistent locator for the content itself. Required. Betat does not host conte
 
 ### `content.content_hash`
 SHA-256 hash of the content at the time of submission. Required. If the content changes at its location, the hash will no longer match — alerting future readers that what they are reading may differ from what was originally verified.
+
+### `content.original_creation_date`
+Optional. ISO 8601 date string for when the content was originally created — distinct from `timestamp`, which is when the *record* was created. For content submitted at creation time this may be omitted; the submission date already serves as the creation date. For historical content discovered after the fact (see ROADMAP.md's Phase 2 backfill mechanism), this is the original publication or creation date. Format: `"YYYY-MM-DD"`, `"YYYY-MM"`, or `"YYYY"` — use the most specific format the evidence supports, and never claim more precision than the evidence provides.
+
+### `content.original_creation_date_precision`
+Optional. One of `"day"`, `"month"`, `"year"` — declares how precise `original_creation_date` is. Required whenever `original_creation_date` is present. Exists to prevent false confidence: a record may honestly claim `"1995"` at `"year"` precision, but must never claim `"1995-03-14"` for content whose evidence only supports a year.
 
 ### `community.id`
 The community's permanent, globally unique identifier. Required. Convention: a fully-qualified domain name the community controls at the moment of minting, written lowercase (see COMMUNITY_FRAMEWORK.md, Community Identity). The ID is a birth certificate, not a live dependency — it never changes, even if the community later changes hosting.

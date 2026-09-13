@@ -1,0 +1,51 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Timeline{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Timeline of human knowledge</p>
+  <h1 class="bt-h1">The human record, across time</h1>
+  <p class="bt-body" style="margin-bottom:2rem">
+    The timeline maps human-originated content discovered across the
+    internet, indexed by year of creation. Enrolled Provenanciers
+    can assert or flag content. Confirmed content becomes a permanent
+    provenance record.
+  </p>
+
+  <div class="bt-banner">
+    The backfill agent has not been started for this community yet.
+    Records submitted directly by Provenanciers appear on the
+    <a href="{% url 'bundledui-records' %}"
+       style="color:var(--bt-ink)">Records page</a>.
+  </div>
+
+  {% if request.user.is_staff %}
+  <div class="bt-card" style="margin-top:1.5rem">
+    <h2 class="bt-h2" style="margin-bottom:0.5rem">
+      Administrator: start the backfill agent
+    </h2>
+    <p class="bt-body" style="margin-bottom:1rem">
+      The backfill agent discovers existing human-originated content
+      and queues it for Provenancier confirmation. It runs on your
+      server and caches metadata only — never full articles. This is a
+      Phase 2 feature (see ROADMAP.md) — the command below is not yet
+      available to run.
+    </p>
+    <div class="bt-cmd" style="background:var(--bt-ink);color:var(--bt-paper);
+         border-radius:6px;padding:0.75rem 1rem;font-family:monospace;
+         font-size:13px;margin-bottom:0.75rem">
+      betat backfill start --scope {{ config.content_type }} --year-from 1991
+    </div>
+    <p class="bt-body">
+      See
+      <a href="https://betat.org/for-builders.html"
+         target="_blank" rel="noopener"
+         style="color:var(--bt-muted)">documentation →</a>
+      for full agent configuration options.
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
