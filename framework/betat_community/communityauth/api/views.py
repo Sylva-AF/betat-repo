@@ -10,14 +10,14 @@ own `CommunityConfig.auth_methods` — a community that enabled only
 somewhere on the protocol list.
 """
 from django.contrib.auth.hashers import check_password
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from betat_community.common.errors import error_response
-from betat_community.common.permissions import IsVerifier
+from betat_community.common.permissions import IsVerifier, PublicReadOnly
 from betat_community.core.models import CommunityConfig
 
 from .. import passphrase as passphrase_derivation
@@ -25,7 +25,7 @@ from ..floor import PROTOCOL_LIST
 from ..identity import Pending, Rejection
 from ..models import PeerVouchRequest, Provenancier
 from ..plugins import CryptoKeyAuth, InstitutionalAuth, PeerVouchAuth
-from .serializers import EnrollRequestSerializer, PeerVouchRequestSerializer
+from .serializers import EnrollRequestSerializer, PeerVouchRequestSerializer, ProvenancierListSerializer
 
 
 class EnrollView(APIView):
@@ -86,6 +86,25 @@ class EnrollView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class ProvenancierListView(generics.ListAPIView):
+    """GET /betat/provenanciers (2026-09-14) — public, read-only list of
+    enrolled identities. Exists so a community_peer_vouching/
+    institutional_endorsement applicant sees real members to ask to vouch
+    for them; vouching itself still only happens through an authenticated
+    POST /betat/vouch/{request_id} by the voucher themselves (BLUEPRINT
+    §03 2026-09 Decision Log) — this endpoint never accepts a vouch, it
+    only helps an applicant find who to ask. Capped at 200 results,
+    ordered by identity — a seed-scale community has no need for a
+    paginated roster, and an unbounded list would be a needless payload
+    for a larger one."""
+
+    permission_classes = [PublicReadOnly]
+    serializer_class = ProvenancierListSerializer
+
+    def get_queryset(self):
+        return Provenancier.objects.order_by('identity')[:200]
 
 
 class CryptoKeyLoginView(APIView):

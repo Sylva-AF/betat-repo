@@ -569,6 +569,65 @@ pre.bt-evidence {
   list-style: none;
 }
 
+/* ── Member list (enroll page, community_peer_vouching /
+   institutional_endorsement — read-only reference of who exists to ask
+   to vouch, 2026-09-14) ────────────────────────────────── */
+.bt-member-list {
+  list-style: none;
+  border: 0.5px solid var(--bt-border);
+  border-radius: 6px;
+  background: var(--bt-paper);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.bt-member-list li {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-bottom: 0.5px solid var(--bt-border);
+}
+
+.bt-member-list li:last-child { border-bottom: none; }
+
+/* ── Passphrase visibility toggle (BLUEPRINT §07 Decision Log,
+   2026-09-14 — reverses the 2026-09-13 no-JS decision for this one
+   case; pure CSS cannot read/mutate an input's type). betat.js wraps
+   every input[type="password"] in .bt-password-wrap and appends the
+   toggle button at runtime — no template changes needed anywhere a
+   passphrase field already exists. ───────────────────────── */
+.bt-password-wrap {
+  position: relative;
+  display: block;
+}
+
+/* Specificity must beat .bt-form-group input[type="password"]'s
+   shorthand `padding: 9px 12px` above, or the toggle button overlaps
+   the typed text. */
+.bt-form-group .bt-password-wrap input {
+  padding-right: 64px;
+}
+
+.bt-password-toggle-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--bt-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.bt-password-toggle-btn:hover,
+.bt-password-toggle-btn:focus {
+  color: var(--bt-ink);
+}
+
 /* ── Buttons ────────────────────────────────────────────── */
 .bt-btn-primary {
   background: var(--bt-ink);

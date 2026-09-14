@@ -526,3 +526,88 @@ ship without any of it. Full suite confirmed green at 185 tests as of
 TODO 13's close-out (see BLUEPRINT §03/§07's 2026-09-13 Decision Log
 entries), but that's `pytest tests/` against the source tree, not a rebuilt
 wheel — items 1-3 of "Still to do" above are all still genuinely open.
+
+Also this session: all four separate commits (TODO 12 wrap-up, the
+Timeline/nav-fix backlog, TODO 13, and a TODO 11 status correction — see
+`todos/13-operator-provenancier-ux.md` and BLUEPRINT.md's 2026-09-13
+entries for the other three) were made and pushed, each verified with
+`git show --stat HEAD` against its expected file list before moving to the
+next. `git log --oneline -4` / `git status` (clean, up to date with
+`origin/main`) confirmed nothing was lost or wrongly bundled.
+
+### Update 2026-09-13 (continued) — fresh-venv wheel check IN PROGRESS, PICK UP HERE
+
+Followed the updated checklist above (wheel rebuild → fresh venv →
+`betat init` with `community_peer_vouching` enabled → `createsuperuser` →
+`betat start`). **Not yet confirmed:** whether the rebuild/install steps
+themselves succeeded cleanly — the developer moved straight to eyeballing
+the new TODO 13 UI in a browser, so run `python -m build ./framework` +
+`twine check` + the fresh-venv `pip install` again and confirm no errors
+before trusting anything below, if that's in doubt.
+
+**First finding, diagnosis started but NOT YET CONFIRMED:** the developer
+reported the new "Admin ▾" nav dropdown (TODO 13's operator dashboard
+entry point) did not appear at all while eyeball-testing. Before treating
+this as a packaging/code bug, checked `pyproject.toml`'s
+`[tool.setuptools.package-data]` — `"*" = ["templates/**/*", "static/**/*"]`
+is a generic recursive glob, already covers the three new TODO 13 templates
+(`admin_dashboard.html`, `claim.html`, `rotate_passphrase.html`) without
+needing any changes, so a missing-from-wheel packaging bug (the exact class
+that bit TODO 12 before) looks unlikely on inspection — **not yet proven
+either way by an actual fresh-venv run, though.**
+
+The dropdown is gated on `{% if request.user.is_staff %}` in `base.html` —
+the same `is_staff` session `queue_view`/`_verifier_token()` already relied
+on before TODO 13 existed. The developer's follow-up answer ("UI has no new
+feature for admin login") strongly suggests the real issue: **there is no
+dedicated "log in as staff/admin" nav entry — the only path to a staff
+session is clicking "Review queue," which redirects an unauthenticated
+visitor to `/community/queue/login`.** This predates TODO 13 entirely (§07
+built `queue_view`'s redirect-to-verifier-login this way from the start);
+TODO 13's Admin dropdown just made the lack of a dedicated staff-login
+entry point matter more, since now there's a second reason to want a staff
+session besides the review queue.
+
+**Asked the developer to retest, not yet reported back:** click "Review
+queue," log in there with the `createsuperuser` credentials, THEN check
+whether "Admin ▾" appears. Two possible outcomes for whoever picks this up
+next:
+1. **Dropdown appears once staff-authenticated via Review queue** →
+   confirms no code/packaging bug in TODO 13's dashboard itself. The real,
+   separate finding is a discoverability gap (no obvious "Admin login"
+   entry point) — worth its own small follow-up task (e.g., a visible
+   "Verifier / Admin login" link, or renaming "Review queue" so it reads
+   as a staff entry point generally, not just submission review). Would
+   make sense as a new task appended to `todos/13-operator-provenancier-ux.md`
+   rather than reopening this file's scope.
+2. **Still missing even after confirmed staff login** → a real bug.
+   Suspect first: whether `createsuperuser` in this fresh install actually
+   set `is_staff=True` (it should, by Django default, but verify via
+   `/admin/` login working at all first); then whether the packaged wheel's
+   `base.html` actually matches the source tree's version (rule out a stale
+   `dist/` from before the last rebuild — re-run step 1 of the checklist
+   above to be sure `dist/` is fresh); only after ruling both out, suspect
+   something Betat-specific in the `is_staff` gate itself.
+
+**None of the rest of the updated fresh-venv checklist has been reported
+on yet** (claim page, passphrase rotation, adaptive login form, the
+password-change link) — all still open, blocked behind resolving this
+first finding.
+
+### Update 2026-09-13 (continued) — first finding resolved: outcome 1, no bug
+
+Developer retested: "Admin ▾" renders correctly once a staff session exists
+via Review queue login. Confirms **outcome 1** from the two listed above —
+no code or packaging bug in TODO 13's dashboard gate. The lack of a
+dedicated "Admin/staff login" nav entry (only reachable via Review queue)
+is a real discoverability gap but the developer has not asked for a fix;
+treat as a known, accepted minor gap, not an open task, unless raised again.
+
+Also confirmed OK: the password-change link opens Django's own `/admin/`
+password-change view (not a Betat-specific page) — this is the intended
+behavior, not a bug.
+
+**Still open from the fresh-venv checklist, not yet retested:** the claim
+page, passphrase rotation flow, and the adaptive login form. Pick these up
+next before trusting "clean install from built artifact works" as fully
+re-confirmed post-TODO-13.

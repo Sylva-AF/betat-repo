@@ -187,7 +187,7 @@ class Command(BaseCommand):
             # Interactive path: loop until a resolving domain is given
             while True:
                 community_id = self._prompt(
-                    'Community id (lowercase FQDN you control)'
+                    'Community id (lowercase FQDN you control, e.g. example.org)'
                 )
                 self.stdout.write('  Checking domain...', ending=' ')
                 self.stdout.flush()
@@ -313,7 +313,7 @@ class Command(BaseCommand):
 
     def _prompt_choice(self, label, choices):
         while True:
-            value = input(f"{label} ({'/'.join(choices)}): ").strip()
+            value = input(f"{label} ({'|'.join(choices)}): ").strip()
             if value in choices:
                 return value
             self.stderr.write(f"Choose one of: {', '.join(choices)}")
@@ -321,7 +321,7 @@ class Command(BaseCommand):
     def _prompt_auth_methods(self, choices):
         while True:
             raw = input(
-                f"Authentication method(s), comma-separated ({'/'.join(choices)}): "
+                f"Authentication method(s), comma-separated ({'|'.join(choices)}): "
             )
             methods = [m.strip() for m in raw.split(",") if m.strip()]
             off_list = [m for m in methods if m not in choices]

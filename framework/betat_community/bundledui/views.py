@@ -64,6 +64,19 @@ def enroll_view(request):
 
     auth_methods = info['auth_methods']
 
+    # Read-only member list (2026-09-14) for community_peer_vouching
+    # applicants only — institutional_endorsement proves identity via an
+    # institution's own signature, not peer vouching, so it has no use
+    # for this list. Helps an applicant see real members to ask to vouch,
+    # since the applicant no longer names vouchers themselves (BLUEPRINT
+    # §03 2026-09 Decision Log). Public GET, no ORM shortcut, same
+    # ApiClient-only rule as every other bundledui view.
+    existing_members = []
+    if 'community_peer_vouching' in auth_methods:
+        members_status, members = api.get('/betat/provenanciers')
+        if members_status == 200:
+            existing_members = members
+
     if request.method == 'POST':
         form = EnrollForm(request.POST, auth_methods=auth_methods)
         if form.is_valid():
@@ -77,7 +90,9 @@ def enroll_view(request):
             if method == 'cryptographic_signature' and passphrase and not applicant.get('public_key'):
                 if passphrase != form.cleaned_data.get('passphrase_confirm', '').strip():
                     messages.error(request, 'Passphrases do not match.')
-                    return render(request, 'bundledui/community/enroll.html', {'form': form, 'community': info})
+                    return render(request, 'bundledui/community/enroll.html', {
+                        'form': form, 'community': info, 'existing_members': existing_members,
+                    })
                 private_key_hex, public_key_hex = passphrase_derivation.derive_keypair(passphrase, info['id'])
                 applicant['public_key'] = public_key_hex
                 applicant['signature'] = communityauth_crypto.sign(private_key_hex, public_key_hex)
@@ -89,7 +104,9 @@ def enroll_view(request):
             if method in ('community_peer_vouching', 'institutional_endorsement') and claim_passphrase:
                 if claim_passphrase != form.cleaned_data.get('claim_passphrase_confirm', '').strip():
                     messages.error(request, 'Claim passphrases do not match.')
-                    return render(request, 'bundledui/community/enroll.html', {'form': form, 'community': info})
+                    return render(request, 'bundledui/community/enroll.html', {
+                        'form': form, 'community': info, 'existing_members': existing_members,
+                    })
                 applicant['claim_passphrase'] = claim_passphrase
 
             status, data = api.post('/betat/enroll', {'method': method, 'applicant': applicant})
@@ -107,7 +124,9 @@ def enroll_view(request):
     else:
         form = EnrollForm(auth_methods=auth_methods)
 
-    return render(request, 'bundledui/community/enroll.html', {'form': form, 'community': info})
+    return render(request, 'bundledui/community/enroll.html', {
+        'form': form, 'community': info, 'existing_members': existing_members,
+    })
 
 
 def _render_peer_vouch_pending(request, api, request_id):

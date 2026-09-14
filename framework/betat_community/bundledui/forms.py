@@ -18,11 +18,12 @@ class EnrollForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': 'e.g. Jane, or leave blank to stay pseudonymous'}),
     )
 
-    # community_peer_vouching
-    vouchers = forms.CharField(
-        label='Vouchers (comma-separated identities of existing members)', required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'alice@example.com, bob@example.com'}),
-    )
+    # community_peer_vouching has no applicant-supplied field here — vouches
+    # only come from an authenticated existing member via POST
+    # /betat/vouch/{request_id} (BLUEPRINT §03 2026-09 Decision Log). The
+    # enroll page shows a read-only member list instead (enroll_view's
+    # `existing_members` context, fetched from GET /betat/provenanciers).
+
     # cryptographic_signature — either paste a public_key + signature
     # directly (technical path, unchanged), or choose a passphrase and let
     # the server derive + self-sign the keypair (BLUEPRINT §03 Decision
@@ -67,8 +68,6 @@ class EnrollForm(forms.Form):
     def applicant_payload(self):
         data = self.cleaned_data
         payload = {'identity': data['identity'], 'display_name': data['display_name']}
-        if data['vouchers']:
-            payload['vouchers'] = [v.strip() for v in data['vouchers'].split(',') if v.strip()]
         if data['public_key']:
             payload['public_key'] = data['public_key']
         if data['signature']:

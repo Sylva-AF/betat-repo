@@ -67,12 +67,32 @@
 
     <hr class="bt-divider">
 
-    <h2 class="bt-h2" style="margin-bottom:0.75rem">If enrolling via community peer vouching</h2>
-    <div class="bt-form-group">
-      <label class="bt-label-field" for="{{ form.vouchers.id_for_label }}">{{ form.vouchers.label }}</label>
-      {{ form.vouchers }}
-      {{ form.vouchers.errors }}
+    <div class="bt-help-row" style="margin-bottom:0.75rem">
+      <h2 class="bt-h2">If enrolling via community peer vouching</h2>
+      <span class="bt-help">
+        <input type="checkbox" id="help-peer-vouching" class="bt-help-toggle">
+        <label for="help-peer-vouching" class="bt-help-icon" aria-hidden="true">&#9432;</label>
+        <span class="bt-help-text">You don't name your vouchers here. After you submit, ask an
+          existing member directly (see the list below, or anyone else already enrolled) to
+          vouch for you using your request ID — they confirm it themselves, from their own
+          logged-in session.</span>
+      </span>
     </div>
+    {% if existing_members %}
+    <div class="bt-form-group">
+      <p class="bt-field-hint" style="margin-bottom:6px">Existing members you could ask to vouch for you:</p>
+      <ul class="bt-member-list">
+        {% for member in existing_members %}
+        <li>{{ member.display_name|default:member.identity }}{% if member.display_name %} <span class="bt-body">({{ member.identity }})</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% else %}
+    <p class="bt-field-hint" style="margin-bottom:0.75rem">
+      No existing members yet — as one of the community's first members, your enrollment
+      will be approved directly by an administrator instead.
+    </p>
+    {% endif %}
 
     <div class="bt-help-row" style="margin-bottom:0.75rem">
       <h2 class="bt-h2">If enrolling via cryptographic signature</h2>

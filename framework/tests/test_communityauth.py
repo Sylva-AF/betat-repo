@@ -47,6 +47,41 @@ def _assert_matches_provenancier_shape(identity_obj):
     }
 
 
+# --- GET /betat/provenanciers (2026-09-14) ------------------------------
+
+def test_provenancier_list_is_public_and_lists_identities():
+    _config()
+    _enrolled_voucher('alice')
+    _enrolled_voucher('bob')
+
+    response = APIClient().get(reverse('betat-provenanciers'))
+
+    assert response.status_code == 200
+    identities = {row['identity'] for row in response.data}
+    assert identities == {'alice', 'bob'}
+    assert set(response.data[0].keys()) == {'identity', 'display_name'}
+
+
+def test_provenancier_list_excludes_verification_material():
+    _config()
+    provenancier = _enrolled_voucher('alice')
+    provenancier.verification_material = {'vouchers': [], 'claim_passphrase_hash': 'secret-hash'}
+    provenancier.save(update_fields=['verification_material'])
+
+    response = APIClient().get(reverse('betat-provenanciers'))
+
+    assert response.status_code == 200
+    assert 'verification_material' not in response.data[0]
+    assert 'claim_passphrase_hash' not in str(response.data)
+
+
+def test_provenancier_list_empty_when_no_members():
+    _config()
+    response = APIClient().get(reverse('betat-provenanciers'))
+    assert response.status_code == 200
+    assert response.data == []
+
+
 # --- Floor -------------------------------------------------------------
 
 def test_protocol_list_has_exactly_the_three_seed_plugins():

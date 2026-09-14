@@ -4,12 +4,25 @@ enroll() docstring) and validated by the plugin itself, not here.
 """
 from rest_framework import serializers
 
-from ..models import PeerVouchRequest
+from ..models import PeerVouchRequest, Provenancier
 
 
 class EnrollRequestSerializer(serializers.Serializer):
     method = serializers.CharField()
     applicant = serializers.DictField()
+
+
+class ProvenancierListSerializer(serializers.ModelSerializer):
+    """Backs GET /betat/provenanciers (2026-09-14) — a public, read-only
+    list of enrolled identities so a community_peer_vouching/
+    institutional_endorsement applicant can see real members to ask to
+    vouch for them. Exposes only identity + display_name — never
+    verification_material, which may hold a public key, claim passphrase
+    hash, or vouchers list."""
+
+    class Meta:
+        model = Provenancier
+        fields = ['identity', 'display_name']
 
 
 class PeerVouchRequestSerializer(serializers.ModelSerializer):

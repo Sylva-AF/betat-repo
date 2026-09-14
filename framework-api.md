@@ -112,6 +112,21 @@ curl -X POST https://your-community.example/betat/vouch/4 \
 
 Returns the same `pending_vouches`/200 shape as above while below threshold, or the enroll-style `identity`/`token`/201 shape once the last required vouch lands and the applicant is promoted to a full Provenancier.
 
+## `GET /betat/provenanciers` — list enrolled identities
+
+Public, unauthenticated, read-only. Added 2026-09-14 so a `community_peer_vouching`/`institutional_endorsement` applicant can see real members to ask to vouch for them — this endpoint only helps an applicant find who to ask; it never records or accepts a vouch itself (that's still `POST /betat/vouch/{request_id}` above, from the voucher's own authenticated session). Exposes `identity` and `display_name` only — no internal fields. Capped at 200 results, ordered by identity.
+
+```bash
+curl https://your-community.example/betat/provenanciers
+```
+
+```json
+[
+  {"identity": "alice@example.com", "display_name": "Alice"},
+  {"identity": "bob@example.com", "display_name": ""}
+]
+```
+
 ## `POST /betat/submit` — submit a contribution
 
 Requires a Provenancier token. Content is never uploaded — only where it lives and its hash.

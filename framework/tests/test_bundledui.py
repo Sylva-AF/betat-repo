@@ -223,6 +223,51 @@ def test_provenancier_login_shows_note_when_multiple_methods_enabled(client):
     assert b'also accepts other enrollment methods' in response.content
 
 
+# --- enroll page member list (§03/§07 Decision Log, 2026-09-14) ----------
+
+def test_enroll_page_lists_existing_members_for_peer_vouching(client):
+    _config(auth_methods=['community_peer_vouching'])
+    persist_provenancier(
+        identity='alice@example.com', identity_type='peer_attested',
+        authentication_method='community_peer_vouching', display_name='Alice',
+        verification_material={},
+    )
+
+    response = client.get(reverse('bundledui-enroll'))
+
+    assert response.status_code == 200
+    assert b'Alice' in response.content
+    assert b'alice@example.com' in response.content
+    assert b'Vouchers (comma-separated' not in response.content
+
+
+def test_enroll_page_shows_no_members_message_when_none_exist(client):
+    _config(auth_methods=['community_peer_vouching'])
+
+    response = client.get(reverse('bundledui-enroll'))
+
+    assert response.status_code == 200
+    assert b'No existing members yet' in response.content
+
+
+def test_enroll_page_skips_member_fetch_when_peer_vouching_disabled(client):
+    """The peer-vouching section still renders (every method's fields show
+    at once, per this form's no-JS design), but existing_members is never
+    fetched when the community hasn't enabled a method that needs it — so
+    an enrolled member shows up here only if the API call actually ran."""
+    _config(auth_methods=['cryptographic_signature'])
+    persist_provenancier(
+        identity='alice@example.com', identity_type='peer_attested',
+        authentication_method='community_peer_vouching', display_name='Alice',
+        verification_material={},
+    )
+
+    response = client.get(reverse('bundledui-enroll'))
+
+    assert response.status_code == 200
+    assert b'Alice' not in response.content
+
+
 # --- peer-vouch pending state (§03 Decision Log, 2026-09) -----------------
 
 def _peer_vouch_config():

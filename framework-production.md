@@ -65,6 +65,10 @@ $ BETAT_DB=postgres://betat_app:<app-password>@localhost:5432/betatdb \
 
 Re-run migrations (step 2, as `betat_migrator`) whenever a framework upgrade ships new migrations; the running server process always uses the restricted `betat_app` credentials.
 
+## A note on your own identity
+
+If you self-enroll as the community's first Provenancier during founding phase, use a handle, not your real email — `identity` is a public field shown on every record you contribute to and directly listable by anyone (`GET /betat/provenanciers`); as the operator, you're the highest-value target in your own community, so don't hand out your real address for free.
+
 ## Moving existing data from a SQLite evaluation install
 
 ```
