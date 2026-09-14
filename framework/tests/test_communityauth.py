@@ -82,6 +82,43 @@ def test_provenancier_list_empty_when_no_members():
     assert response.data == []
 
 
+# --- CryptoKeyAuth public_key uniqueness (2026-09-14) -------------------
+
+def test_crypto_key_enroll_rejects_public_key_already_registered():
+    """Without this check, the same keypair (e.g. the same passphrase,
+    which deterministically derives the same key) could back two
+    'distinct' identities — letting one real key-holder pose as multiple
+    Provenanciers and defeat peer-vouch's >=2-vouchers Sybil-resistance
+    rule the moment both are used to vouch."""
+    config = _config()
+    plugin = CryptoKeyAuth(config)
+    private_key, public_key = crypto.generate_keypair()
+    proof = crypto.sign(private_key, public_key)
+
+    first = plugin.enroll({'identity': 'alice', 'public_key': public_key, 'signature': proof})
+    assert isinstance(first, ProvenancierIdentity)
+
+    second = plugin.enroll({'identity': 'bob', 'public_key': public_key, 'signature': proof})
+    assert isinstance(second, Rejection)
+    assert second.code == 'public_key_taken'
+    assert not Provenancier.objects.filter(identity='bob').exists()
+
+
+def test_crypto_key_enroll_allows_distinct_keys_for_distinct_identities():
+    config = _config()
+    plugin = CryptoKeyAuth(config)
+    private_key_a, public_key_a = crypto.generate_keypair()
+    proof_a = crypto.sign(private_key_a, public_key_a)
+    private_key_b, public_key_b = crypto.generate_keypair()
+    proof_b = crypto.sign(private_key_b, public_key_b)
+
+    first = plugin.enroll({'identity': 'alice', 'public_key': public_key_a, 'signature': proof_a})
+    second = plugin.enroll({'identity': 'bob', 'public_key': public_key_b, 'signature': proof_b})
+
+    assert isinstance(first, ProvenancierIdentity)
+    assert isinstance(second, ProvenancierIdentity)
+
+
 # --- Floor -------------------------------------------------------------
 
 def test_protocol_list_has_exactly_the_three_seed_plugins():

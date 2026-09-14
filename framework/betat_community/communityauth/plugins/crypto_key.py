@@ -39,6 +39,25 @@ class CryptoKeyAuth(AuthMethod):
                 code='invalid_proof',
                 message='signature is not a valid proof of possession of public_key.',
             )
+        # 2026-09-14: reject a public_key already registered to another
+        # Provenancier. Without this, the same passphrase (deterministic —
+        # passphrase.py) or the same pasted keypair could back two "distinct"
+        # identities, letting one real key-holder pose as multiple
+        # Provenanciers — defeating peer-vouch's >=2-vouchers Sybil-resistance
+        # rule (BLUEPRINT §03 Decision Log, 2026-08) the moment either
+        # identity is used to vouch. Does not fix the deeper, structural
+        # limit that cryptographic_signature alone can't prove *distinct
+        # humans* even with unique keys (generating another keypair is free)
+        # — that's an accepted v0.1 limitation, not something this check
+        # can close; peer-vouch/institutional-endorsement remain the real
+        # human-anchored trust methods.
+        if Provenancier.objects.filter(
+            authentication_method=self.method_name, verification_material__public_key=public_key,
+        ).exists():
+            return Rejection(
+                code='public_key_taken',
+                message='That public key is already registered to another Provenancier.',
+            )
 
         display_name = applicant.get('display_name', '')
         provenancier, _token = persist_provenancier(
