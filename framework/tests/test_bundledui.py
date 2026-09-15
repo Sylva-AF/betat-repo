@@ -363,6 +363,54 @@ def test_peer_vouch_pending_shows_honest_gap_when_promoted_elsewhere(client):
     assert 'provenancier_token' not in client.session
 
 
+def test_provenancier_logout_clears_peer_vouch_session(client):
+    """Logout must drop the in-flight peer-vouch keys too, not just the
+    provenancier token — otherwise a completed first enrollment's stale
+    request_id hijacks the next visit to /community/enroll and strands it on
+    the pending page instead of a fresh form (fresh-venv verify 2026-09-15)."""
+    _peer_vouch_config()
+    _start_peer_vouch_enrollment(client, 'alice', 'Alice')
+    assert client.session['peer_vouch_request_id']
+
+    logout_response = client.get(reverse('bundledui-provenancier-logout'))
+    assert logout_response.status_code == 302
+    assert 'peer_vouch_request_id' not in client.session
+    assert 'peer_vouch_identity' not in client.session
+
+    # A fresh visit now shows the enroll form, not the leftover pending page.
+    enroll_response = client.get(reverse('bundledui-enroll'))
+    assert enroll_response.status_code == 200
+    assert b'Your request is in progress' not in enroll_response.content
+
+
+def test_peer_vouch_promoted_elsewhere_clears_stale_request(client):
+    """The 'completed elsewhere' dead-end is terminal: it must clear the
+    stale request keys so the *next* /community/enroll visit returns a fresh
+    form instead of re-triggering the same dead-end forever — the second
+    provenancier could otherwise never enroll from the same browser
+    (fresh-venv verify 2026-09-15)."""
+    from betat_community.communityauth.models import PeerVouchRequest
+    from betat_community.communityauth.plugins import PeerVouchAuth
+
+    config = _peer_vouch_config()
+    _start_peer_vouch_enrollment(client, 'carol', 'Carol')
+
+    req = PeerVouchRequest.objects.get(identity='carol')
+    plugin = PeerVouchAuth(config)
+    plugin.add_vouch(req.pk, 'voucher-1')
+    plugin.add_vouch(req.pk, 'voucher-2')  # crosses threshold — promotes + deletes req
+
+    # First return hits the dead-end message once, and clears the stale keys.
+    first = client.get(reverse('bundledui-enroll'))
+    assert b'Your enrollment has been completed by your community' in first.content
+    assert 'peer_vouch_request_id' not in client.session
+
+    # The next visit is a fresh enroll form, not the dead-end again.
+    second = client.get(reverse('bundledui-enroll'))
+    assert second.status_code == 200
+    assert b'Your enrollment has been completed by your community' not in second.content
+
+
 # --- verifier login / queue -----------------------------------------------
 
 def test_verifier_login_rejects_non_staff(client):

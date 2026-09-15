@@ -52,6 +52,20 @@ def _decorate_record(record):
     return record
 
 
+def _clear_peer_vouch_session(request):
+    """Drop the in-flight peer-vouch enrollment keys. Called on every
+    terminal outcome for a request (promoted here, claimed, or completed
+    elsewhere) and on logout, so a stale request_id from a *finished*
+    enrollment can't hijack the next visit to /community/enroll and strand
+    it on the pending page. Found in fresh-venv verify 2026-09-15: a first
+    provenancier who enrolled by peer-vouch, was approved, then logged out
+    left these keys behind, so a second enrollment in the same browser
+    re-polled the first (already-enrolled) identity and hit the
+    'completed elsewhere' dead-end instead of a fresh form."""
+    for key in ('peer_vouch_request_id', 'peer_vouch_identity', 'peer_vouch_display_name'):
+        request.session.pop(key, None)
+
+
 def enroll_view(request):
     api = ApiClient(server_name=request.get_host())
     status, info = api.get('/betat/info')
@@ -149,8 +163,7 @@ def _render_peer_vouch_pending(request, api, request_id):
     if poll_status == 201:
         # This poll itself crossed the threshold — same outcome as a
         # fresh 201 in the POST branch above.
-        for key in ('peer_vouch_request_id', 'peer_vouch_identity', 'peer_vouch_display_name'):
-            request.session.pop(key, None)
+        _clear_peer_vouch_session(request)
         request.session['provenancier_token'] = data['token']
         request.session['provenancier_identity'] = data['identity']
         messages.success(request, f"Enrolled as '{data['identity']}'. You can now submit a contribution.")
@@ -178,7 +191,13 @@ def _render_peer_vouch_pending(request, api, request_id):
         })
 
     # 400 identity_taken (promoted via a different session) or any other
-    # error — this session has no token to offer either way.
+    # error — this session has no token to offer either way. This request
+    # is terminal, so clear its keys: without this, the stale request_id
+    # keeps re-triggering this same dead-end on every future visit to
+    # /community/enroll, blocking any new enrollment from this browser
+    # (fresh-venv verify 2026-09-15). The message still shows this once;
+    # the next visit gets a fresh enroll form.
+    _clear_peer_vouch_session(request)
     return render(request, 'bundledui/community/enroll_pending.html', {
         'request_id': request_id,
         'promoted_elsewhere': True,
@@ -270,6 +289,7 @@ def claim_enrollment_view(request):
                 '/betat/enroll/claim', {'identity': identity, 'claim_passphrase': claim_passphrase},
             )
             if status == 200:
+                _clear_peer_vouch_session(request)
                 request.session['provenancier_token'] = data['token']
                 request.session['provenancier_identity'] = data['identity']
                 messages.success(request, f"Welcome back, '{data['identity']}'.")
@@ -324,6 +344,7 @@ def provenancier_logout_view(request):
     introducing a new convention."""
     request.session.pop('provenancier_token', None)
     request.session.pop('provenancier_identity', None)
+    _clear_peer_vouch_session(request)
     messages.info(request, 'Logged out.')
     return redirect('bundledui-landing')
 
