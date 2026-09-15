@@ -1,0 +1,2180 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.13, pytest-9.1.1, pluggy-1.6.0
+django: version: 5.2.17, settings: betat_community.settings (from ini)
+rootdir: /workspace/framework
+configfile: pyproject.toml
+plugins: django-4.14.0
+collected 193 items
+
+tests/test_acceptance.py E                                               [  0%]
+tests/test_bundledui.py EEEEEEEEEEEEEEE
+
+==================================== ERRORS ====================================
+_________________ ERROR at setup of test_seven_step_acceptance _________________
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_seven_step_acceptance>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+___ ERROR at setup of test_enroll_page_redirects_to_installer_when_no_config ___
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_enroll_page_redirects_to_installer_when_no_config>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+_____ ERROR at setup of test_landing_redirects_to_installer_when_no_config _____
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_landing_redirects_to_installer_when_no_config>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+__________ ERROR at setup of test_installer_shown_when_not_configured __________
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_installer_shown_when_not_configured>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+_________________ ERROR at setup of test_installer_has_no_nav __________________
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_installer_has_no_nav>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+____ ERROR at setup of test_installer_redirects_to_landing_once_configured _____
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_installer_redirects_to_landing_once_configured>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+_________ ERROR at setup of test_admin_exempt_from_installer_redirect __________
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_admin_exempt_from_installer_redirect>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+__________ ERROR at setup of test_api_exempt_from_installer_redirect ___________
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_api_exempt_from_installer_redirect>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+_______ ERROR at setup of test_enroll_page_lists_configured_auth_methods _______
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_enroll_page_lists_configured_auth_methods>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+________________ ERROR at setup of test_enroll_then_submit_flow ________________
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_enroll_then_submit_flow>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+_____ ERROR at setup of test_submit_without_enrolling_redirects_to_enroll ______
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_submit_without_enrolling_redirects_to_enroll>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+___________ ERROR at setup of test_nav_shows_login_before_enrolling ____________
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_nav_shows_login_before_enrolling>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+___________ ERROR at setup of test_nav_shows_logout_after_enrolling ____________
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_nav_shows_logout_after_enrolling>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+__________ ERROR at setup of test_provenancier_logout_clears_session ___________
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_provenancier_logout_clears_session>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+_ ERROR at setup of test_provenancier_login_shows_form_when_passphrase_method_enabled _
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_provenancier_login_shows_form_when_passphrase_method_enabled>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+_ ERROR at setup of test_provenancier_login_hides_form_when_no_passphrase_method _
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    @contextmanager
+    def _nodb_cursor(self):
+        cursor = None
+        try:
+>           with super()._nodb_cursor() as cursor:
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:712: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='__no_db__'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+
+During handling of the above exception, another exception occurred:
+
+request = <SubRequest '_django_db_marker' for <Function test_provenancier_login_hides_form_when_no_passphrase_method>>
+
+    @pytest.fixture(autouse=True)
+    def _django_db_marker(request: pytest.FixtureRequest) -> None:
+        """Implement the django_db marker, internal to pytest-django."""
+        marker = request.node.get_closest_marker("django_db")
+        if marker:
+>           request.getfixturevalue("_django_db_helper")
+
+../.venv/lib64/python3.11/site-packages/pytest_django/plugin.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../.venv/lib64/python3.11/site-packages/pytest_django/fixtures.py:186: in django_db_setup
+    db_cfg = setup_databases(
+../.venv/lib64/python3.11/site-packages/django/test/utils.py:204: in setup_databases
+    connection.creation.create_test_db(
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:62: in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/creation.py:202: in _create_test_db
+    with self._nodb_cursor() as cursor:
+/usr/lib64/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:533: in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:320: in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:296: in _cursor
+    self.ensure_connection()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:279: in ensure_connection
+    self.connect()
+../.venv/lib64/python3.11/site-packages/django/utils/asyncio.py:26: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:258: in connect
+    self.init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:398: in init_connection_state
+    super().init_connection_state()
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:225: in init_connection_state
+    self.check_database_version_supported()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DatabaseWrapper vendor='postgresql' alias='default'>
+
+    def check_database_version_supported(self):
+        """
+        Raise an error if the database version isn't supported by this
+        version of Django.
+        """
+        if (
+            self.features.minimum_database_version is not None
+            and self.get_database_version() < self.features.minimum_database_version
+        ):
+            db_version = ".".join(map(str, self.get_database_version()))
+            min_db_version = ".".join(map(str, self.features.minimum_database_version))
+>           raise NotSupportedError(
+                f"{self.display_name} {min_db_version} or later is required "
+                f"(found {db_version})."
+            )
+E           django.db.utils.NotSupportedError: PostgreSQL 14 or later is required (found 13.23).
+
+../.venv/lib64/python3.11/site-packages/django/db/backends/base/base.py:201: NotSupportedError
+=============================== warnings summary ===============================
+tests/test_acceptance.py::test_seven_step_acceptance
+  /workspace/.venv/lib64/python3.11/site-packages/django/db/backends/postgresql/base.py:512: RuntimeWarning: Normally Django will use a connection to the 'postgres' database to avoid running initialization queries against the production database when it's not needed (for example, when running tests). Django was unable to create a connection to the 'postgres' database and will use the first PostgreSQL database instead.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_acceptance.py::test_seven_step_acceptance - django.db.utils....
+ERROR tests/test_bundledui.py::test_enroll_page_redirects_to_installer_when_no_config
+ERROR tests/test_bundledui.py::test_landing_redirects_to_installer_when_no_config
+ERROR tests/test_bundledui.py::test_installer_shown_when_not_configured - dja...
+ERROR tests/test_bundledui.py::test_installer_has_no_nav - django.db.utils.No...
+ERROR tests/test_bundledui.py::test_installer_redirects_to_landing_once_configured
+ERROR tests/test_bundledui.py::test_admin_exempt_from_installer_redirect - dj...
+ERROR tests/test_bundledui.py::test_api_exempt_from_installer_redirect - djan...
+ERROR tests/test_bundledui.py::test_enroll_page_lists_configured_auth_methods
+ERROR tests/test_bundledui.py::test_enroll_then_submit_flow - django.db.utils...
+ERROR tests/test_bundledui.py::test_submit_without_enrolling_redirects_to_enroll
+ERROR tests/test_bundledui.py::test_nav_shows_login_before_enrolling - django...
+ERROR tests/test_bundledui.py::test_nav_shows_logout_after_enrolling - django...
+ERROR tests/test_bundledui.py::test_provenancier_logout_clears_session - djan...
+ERROR tests/test_bundledui.py::test_provenancier_login_shows_form_when_passphrase_method_enabled
+ERROR tests/test_bundledui.py::test_provenancier_login_hides_form_when_no_passphrase_method
+======================== 1 warning, 16 errors in 2.05s =========================

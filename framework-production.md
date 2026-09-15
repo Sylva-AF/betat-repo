@@ -80,6 +80,10 @@ $ BETAT_DB=postgres://betat_migrator:<migrator-password>@localhost:5432/betatdb 
 
 Load the data before running step 3 — `loaddata` performs inserts, so it works under either role, but doing it before the app role is locked down keeps the sequence simple and avoids needing migrator credentials again later.
 
+## PostgreSQL version
+
+**PostgreSQL 14 or later is required.** This floor comes from Django 5.2, which betat is built on — betat refuses to connect to an older server, failing fast at startup with `NotSupportedError: PostgreSQL 14 or later is required (found <version>)` rather than misbehaving silently. Any currently-supported PostgreSQL release (14 through the latest) works; the two-role append-only setup above is identical across them.
+
 ## Python version
 
 Tested on the 3.11 floor through 3.12+. No production-specific version constraint beyond what `pyproject.toml` already declares.

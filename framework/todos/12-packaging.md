@@ -20,7 +20,7 @@
 
 ## Acceptance criteria
 - [ ] clean install from built artifact works — **developer action**
-- [x] dual-DB ship promise: real, not scoped away — `settings.py` supports both engines via `BETAT_DB`; the dual-DB ship gate (point `BETAT_DB` at a live Postgres, re-run `pytest tests/`) is a real DISTRIBUTION.md pre-release checklist item — **developer action to actually run**, see "Still to do"
+- [x] dual-DB ship promise: real, not scoped away — `settings.py` supports both engines via `BETAT_DB`; the dual-DB ship gate **was run against live PostgreSQL 16.14 on 2026-09-15 → 191 passed, 2 skipped** (SQLite-guard-trigger tests skip as designed). See "Update 2026-09-15" at the bottom.
 - [x] the ONLY production step documented for end users is: set `BETAT_DB` and deploy (no code changes) — framework-production.md
 - [ ] production guide runs end-to-end — written, not yet dry-run against a real PostgreSQL instance; **developer action**
 - [ ] on PostgreSQL, raw UPDATE/DELETE by the app role fails at the DB-permission level — documented as operator-run `psql` (framework-production.md §3), not automatically tested by this repo; verify once when first dry-running the guide
@@ -50,7 +50,7 @@
 PostgreSQL table ownership can't be stripped by REVOKE — an owner always retains UPDATE/DELETE regardless of grants. So genuine enforcement needs a migrator/owner role (runs `migrate`) distinct from the app's runtime role (INSERT/SELECT only). Automating and testing that split inside this repo would mean either shipping a migration that REVOKEs from a role named via a new env var with no live two-role Postgres in CI to verify it against, or standing up real Postgres CI infrastructure. `framework-production.md` §1 and §3 documents the exact `psql` commands instead — honest, and verifiable by any operator who runs them.
 
 ### Still to do (developer actions)
-1. **Run the dual-DB ship gate** (DISTRIBUTION.md pre-release checklist, now a real requirement again): point `BETAT_DB` at a live PostgreSQL instance and re-run `pytest tests/` — everything should pass except the two permanently-skipped SQLite-guard-trigger tests. **Not attempted yet** (see Update 2026-09-08 below — this session did the build/twine steps of item 2, not this one).
+1. ~~**Run the dual-DB ship gate**~~ — **DONE 2026-09-15.** `BETAT_DB` pointed at a live **PostgreSQL 16.14** server: `pytest tests/` → **191 passed, 2 skipped** (the two skips are exactly the SQLite-guard-trigger tests, as designed). Confirms betat runs identically on SQLite and PG 14+; no SQLite-only assumptions leaked. See "Update 2026-09-15" at the bottom for how the PG16 server was obtained in this container (non-trivial — the container can't install into `/usr` and has no docker/podman). (Earlier: see Update 2026-09-08 below — that session did the build/twine steps of item 2, not this one.)
 2. **Build the package and verify a clean install** (see DISTRIBUTION.md "How to build and publish" for the full sequence — that file's exact invocation is authoritative over this list, see the update below):
    ```bash
    python -m build ./framework                                  # from the repo root, venv active — DONE 2026-09-08
@@ -611,3 +611,158 @@ behavior, not a bug.
 page, passphrase rotation flow, and the adaptive login form. Pick these up
 next before trusting "clean install from built artifact works" as fully
 re-confirmed post-TODO-13.
+
+### Update 2026-09-14 — dual-DB ship gate attempt, PICK UP HERE
+
+Also this session (separate from the TODO 13 UX work above, and from the
+vouchers-picker/passphrase-toggle/crypto-key-reuse-fix/tooltip-fix work —
+see BLUEPRINT.md's 2026-09-14 Decision Log entries for those, already
+committed per the developer's session-wrapup script): attempted item 1
+above, the dual-DB ship gate, inside the `betat-sandbox` container. **Not
+working yet — blocked mid-diagnosis, picking up here loses no progress.**
+
+**Environment facts confirmed this session (don't re-derive):**
+- The sandbox container has `postgresql-server-13.23-3.el9_8` installed
+  (Rocky/RHEL 9, EL9 modular stream) — binaries at `/usr/bin/{initdb,pg_ctl,
+  postgres,psql,postgresql-setup}`, confirmed via `rpm -ql postgresql-server`.
+  `which` found none of them, meaning this container's PATH is nonstandard
+  (doesn't include `/usr/bin` the way a normal shell would) — always use
+  absolute paths or rely on RPM-confirmed locations, don't trust `which`.
+- `postgresql-setup --initdb` **does not work in this container** — it
+  shells out to `systemctl`/`dbus` to look up the configured data
+  directory, and this container has no systemd as PID 1
+  ("System has not been booted with systemd as init system"). Always use
+  plain `initdb -D /var/lib/pgsql/data` directly instead (after `mkdir -p`
+  + `chown postgres:postgres` + `chmod 700` on that directory first —
+  `initdb` requires those).
+- **`ps` is not installed in this container** (`bash: ps: command not
+  found`). `ss`/`netstat` were also tried and produced no output when
+  checking for a port-5432 listener — this was very likely **also a
+  missing-tool false negative, not a real "port is free" answer**, since
+  those come from the same `procps`/`iproute2`/`net-tools` family `ps`
+  is missing from. **Don't trust "no output from ss/netstat" as proof of
+  anything in this container — never confirmed whether they're actually
+  installed.**
+- **Root cannot read a file owned by `postgres`** even though root should
+  normally bypass Unix permissions entirely (`cat` on a postgres-owned
+  logfile gave `Permission denied` as root). Never diagnosed why (SELinux
+  enforcing, or dropped capabilities, are the two live theories) — but the
+  workaround (`su - postgres -c "cat ..."`, read as the owning user
+  instead of root) reliably works. Worth remembering if other
+  root-should-be-able-to-but-can't symptoms show up later — this container
+  has some non-default confinement beyond plain DAC permissions.
+- **A serious false alarm mid-session, resolved, no actual harm done:**
+  after the sandbox's `initdb` succeeded, a `ps aux`/`ss -ltnp` check
+  appeared to show an already-running postmaster (PID 1381, up since
+  13:14) bound to port 5432 on `/var/lib/pgsql/data` — the same path we'd
+  just initialized, raising a real fear that `initdb` had overwritten a
+  live, already-running cluster's directory entries out from under it.
+  **Turned out to be a mixed-up shell**: that `ps`/`ss` output was from
+  the developer's **local laptop** (prompt `[sylva@www ~]$`), not the
+  sandbox (`[root@www ...]#`) — a completely separate, unrelated Postgres
+  instance (used by another project, "BissOpp," per root CLAUDE.md's
+  repository facts). The sandbox's own `/var/lib/pgsql/data` was
+  genuinely empty before `initdb` ran there; nothing was ever
+  double-initialized. Separately, on the actual laptop, an earlier
+  `initdb` attempt against that same real BissOpp Postgres directory was
+  correctly refused by `initdb` itself ("directory exists but is not
+  empty") before making any changes — so no laptop data was touched
+  either. **Net effect: no cleanup needed anywhere, but this is a sharp
+  reminder to double-check which shell/prompt a pasted command's output
+  actually came from before treating it as diagnostic evidence,
+  especially when the developer is troubleshooting across two terminals.**
+
+**The actual unresolved blocker:** `pg_ctl -D /var/lib/pgsql/data start`
+fails every time, in the sandbox, with:
+```
+LOG:  could not bind IPv6 address "::1": Address already in use
+LOG:  could not bind IPv4 address "127.0.0.1": Address already in use
+WARNING:  could not create listen socket for "localhost"
+FATAL:  could not create any TCP/IP sockets
+LOG:  database system is shut down
+```
+Tried across four separate attempts over ~12 minutes (03:41, 03:42, 03:53,
+03:53 UTC) — same failure every time, self-shutting-down cleanly each
+time (not crashing/corrupting anything, per the log's own "database
+system is shut down" line after each attempt). Also retried on an
+alternate port (`pg_ctl ... -o '-p 5433' start`) on the theory that
+*something* (visible or not, given `ps`/`ss` can't be trusted here) holds
+5432 — **the developer reports pytest still couldn't connect afterward,
+but the exact output of the port-5433 `pg_ctl start` itself, the
+`CREATE DATABASE` step, and the actual pytest connection error were never
+captured before this session ended.** Do not assume port 5433 is also
+blocked — it was never actually confirmed either way.
+
+**Next session, in exact order:**
+1. Re-run `su - postgres -c "pg_ctl -D /var/lib/pgsql/data -l /var/lib/pgsql/data/logfile -o '-p 5433' start"` fresh and capture its literal output (success message, or the same bind failure — if the latter, `cat`/`ls -t` the `log/` dir the same way as before, don't assume it's the same cause).
+2. If it starts successfully this time: `su - postgres -c "psql -p 5433 -c \"CREATE DATABASE betat_testdb OWNER postgres;\""`, capture that output too.
+3. Only once 1–2 are confirmed clean: `cd framework && BETAT_DB=postgres://postgres@localhost:5433/betat_testdb pytest tests/`, and capture the **actual** error text if it still fails (a Python traceback, not just "couldn't connect") — check specifically whether `psycopg` import/connection errors are involved, since that's a different failure class than a Postgres-side bind/auth problem.
+4. If port 5433 *also* can't be bound: try `/proc/net/tcp`/`/proc/net/tcp6` directly as a `ps`/`ss`-independent way to check for existing listeners (port 5432 in hex is `1538`; state `0A` = LISTEN) — e.g. `awk 'NR>1{print $2,$4}' /proc/net/tcp /proc/net/tcp6 | grep -i ':1538 0A'` — since this container's missing `ps`/`ss`/`netstat` make the normal diagnostic path unreliable.
+5. Also worth trying as a completely different diagnostic angle: `su - postgres -c "psql -h 127.0.0.1 -p 5432 -l"` — a *real connection attempt* rather than a port scan. "Connection refused" definitively means nothing is listening; anything else (auth error, a response at all) means something is, regardless of what `ps`/`ss` could or couldn't show.
+6. Once the gate actually passes: expect every test green except the 2 permanently-skipped SQLite-guard-trigger tests (per this file's own §05 Decision Log reasoning) — any other failure or a different skip count is a real problem, not expected behavior.
+
+**Not yet attempted at all:** items 2–3 of "Still to do" above (fresh-venv
+wheel install, production-guide dry run against real PostgreSQL) — both
+still block behind this dual-DB gate resolving first.
+
+### Update 2026-09-15 — dual-DB ship gate PASSED (PostgreSQL 16.14)
+
+Item 1 is **done**. `cd framework && BETAT_DB='postgres://postgres@/betat_testdb?host=/tmp' pytest tests/`
+→ **191 passed, 2 skipped in 14.47s**, against a live PostgreSQL 16.14
+server. The 2 skips are exactly `tests/test_store.py`'s two
+SQLite-guard-trigger tests (`...ss` in the output) — SQLite-only by
+design, per this file's §05 reasoning. This is the real dual-DB proof:
+betat's code runs identically on SQLite and PG 14+; no SQLite-only
+assumptions leaked.
+
+**Getting a PG 14+ server in the `betat-sandbox` container was the whole
+battle** (the code was never the problem). Facts for next time — this
+container makes the "obvious" paths all fail:
+
+- **The container ships PostgreSQL 13.23, but Django 5.2 requires PG 14+**
+  (`check_database_version_supported()` raises
+  `NotSupportedError: PostgreSQL 14 or later is required (found 13.23)`
+  at connection time). This — not any betat bug — is what made the first
+  gate attempt show all 193 tests erroring identically. **Implication for
+  docs: betat's real PostgreSQL floor is 14+, inherited from Django 5.2.**
+  (Check whether `framework-production.md` states this — see "What's left"
+  in chat; worth adding if absent.)
+- **Can't `dnf`-install a newer PG:** `dnf module switch-to postgresql:16`
+  downloads fine but the rpm transaction fails unpacking into `/usr`
+  (`cpio: symlink` / `cpio: open` errors on `/usr/lib64`, `/usr/bin`) —
+  the container's system dirs are read-only/immutable (same confinement
+  class as "root can't read postgres-owned files"). dnf rolls back
+  cleanly; you stay on 13.23.
+- **No container runtime:** `command -v podman docker` → both empty. So
+  "just run postgres:16" isn't available either.
+- **What worked — run the official PG16 rpm binaries from a writable
+  prefix, no install:**
+  1. `cd /tmp && dnf download postgresql-server postgresql postgresql-private-libs`
+     (writes the rpms to cwd, NOT `/var/cache/dnf`).
+  2. `cpio` is **not installed** — use `rpm2archive` instead:
+     `mkdir -p /tmp/pg16 && cd /tmp/pg16; for r in /tmp/postgresql*16.14*.rpm; do rpm2archive "$r" && tar -xzf "$r.tgz" -C /tmp/pg16; done`
+     (the `tar: ./var/lib/pgsql ... Cannot change ownership to uid 26`
+     errors are harmless — that's the postgres home dir, not needed).
+  3. Run everything as the `postgres` user with
+     `LD_LIBRARY_PATH=/tmp/pg16/usr/lib64` and absolute paths under
+     `/tmp/pg16/usr/bin/`: `initdb -D /tmp/pgdata16`, sed pg_hba to
+     `trust`, then `pg_ctl ... -o '-c listen_addresses= -k /tmp' start`
+     (socket-only in `/tmp` — dodges the TCP bind conflict from the host's
+     shared network, where the laptop's BissOpp Postgres holds 5432), then
+     `psql -h /tmp -c 'CREATE DATABASE betat_testdb OWNER postgres;'`.
+  4. `psycopg` in the venv has its own bundled libpq, so pytest connects
+     over the `/tmp` socket regardless of the extracted-prefix libs — the
+     `?host=/tmp` socket URL is what makes the `BETAT_DB` line work.
+  - Stop the leftover PG13 (`/usr/bin/pg_ctl -D /tmp/pgdata stop -m fast`)
+    before starting PG16 so the `/tmp` socket is free.
+  - `/tmp/pgdata` (PG13) and `/tmp/pg16`+`/tmp/pgdata16` (PG16) are all in
+    the container's **ephemeral** fs — wiped on container restart, so this
+    whole dance repeats next session. Nothing persists, nothing touches
+    `/workspace` or BissOpp.
+
+**Now unblocked (items 2–3 of "Still to do"):** fresh-venv wheel install
+re-verify (post-TODO-13: claim page, passphrase rotation, adaptive login
+still un-retested per the 2026-09-13 updates) and the production-guide dry
+run against real PostgreSQL (item 3 / the last two acceptance criteria —
+raw UPDATE/DELETE by the app role blocked at the DB-permission level). The
+PG16 setup above is reusable for the production-guide dry run.
