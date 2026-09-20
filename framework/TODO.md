@@ -20,7 +20,7 @@
 | 11 | Documentation site | [todos/11-docs-site.md](todos/11-docs-site.md) | Documentation Standard | in progress |
 | 12 | Packaging & production guide | [todos/12-packaging.md](todos/12-packaging.md) | Design Goal 4; storage engines | in progress |
 | 13 | Operator & Provenancier UX — admin dashboard, adaptive access | [todos/13-operator-provenancier-ux.md](todos/13-operator-provenancier-ux.md) | Consumption Model, Layer 2; Authentication (pluggable, floored) | done |
-| 14 | Peer-vouch UX — click-to-vouch, targeted vouch requests, staff-scoped nav | [todos/14-peer-vouch-ux.md](todos/14-peer-vouch-ux.md) | Consumption Model, Layer 2; Authentication (pluggable, floored) | code complete — migration + pytest pending (dev-run) |
+| 14 | Peer-vouch UX — click-to-vouch, targeted vouch requests, staff-scoped nav | [todos/14-peer-vouch-ux.md](todos/14-peer-vouch-ux.md) | Consumption Model, Layer 2; Authentication (pluggable, floored) | suite green (132 passed) — wheel build + manual UI verify pending (dev-run) |
 
 Build order: 01 → 02 → 05 → 03 → 04 → 06 → 10 (first acceptance pass) → 07 → 08 → 09 → 11 → 12.
 The store (05) comes early because everything writes to it; the acceptance test (10) runs as soon as

@@ -1,7 +1,8 @@
 # TODO 14 — Peer-vouch UX: click-to-vouch, targeted vouch requests, staff-scoped nav
 
-> Status: code complete — migration + pytest pending (both developer-run; this session's sandbox
-> blocks Bash/migrations). Blueprint: no dedicated section — landed as Decision Log entries under
+> Status: migration applied + full suite green (132 passed, confirmed by developer) — wheel build,
+> test install, and manual UI verify pending (developer-run). Blueprint: no dedicated section —
+> landed as Decision Log entries under
 > §03/§07 (2026-09-20), per this repo's "spec → blueprint → TODOs → code" authority rule.
 > Spec reference: COMMUNITY_FRAMEWORK.md → "Consumption Model, Layer 2"; "Authentication (pluggable, floored)".
 > Depends on: 03, 04, 07, 13.
@@ -46,14 +47,14 @@ Four bundled-UI gaps found in manual use of the shipped peer-vouch flow:
 
 ## Acceptance criteria
 
-- [ ] A logged-in Provenancier sees no *Enroll* CTA, and visiting `/community/enroll` redirects to
-  submit. *(dev: pytest)*
-- [ ] *Review queue* is absent from the nav for anonymous/non-staff visitors and present for staff;
-  verifier sign-in is reachable from `/community/login`. *(dev: pytest)*
-- [ ] An applicant can select specific members on the enroll page; those identities land in
-  `PeerVouchRequest.requested_vouchers` (filtered to real members). *(dev: pytest)*
-- [ ] An enrolled member sees pending requests at `/community/vouch-requests`, with the ones that
-  asked them flagged, and can vouch in one click (self- and double-vouch still blocked). *(dev: pytest)*
+- [x] A logged-in Provenancier sees no *Enroll* CTA, and visiting `/community/enroll` redirects to
+  submit. *(pytest confirmed — 132 passed)*
+- [x] *Review queue* is absent from the nav for anonymous/non-staff visitors and present for staff;
+  verifier sign-in is reachable from `/community/login`. *(pytest confirmed)*
+- [x] An applicant can select specific members on the enroll page; those identities land in
+  `PeerVouchRequest.requested_vouchers` (filtered to real members). *(pytest confirmed)*
+- [x] An enrolled member sees pending requests at `/community/vouch-requests`, with the ones that
+  asked them flagged, and can vouch in one click (self- and double-vouch still blocked). *(pytest confirmed)*
 
 ## Out of scope
 
