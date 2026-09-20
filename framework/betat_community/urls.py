@@ -23,6 +23,7 @@ from betat_community.communityauth.api.views import (
     ClaimEnrollmentView,
     CryptoKeyLoginView,
     EnrollView,
+    OpenVouchRequestsView,
     PeerVouchQueueView,
     ProvenancierListView,
     RotatePassphraseView,
@@ -40,6 +41,7 @@ urlpatterns = [
     path('betat/rotate-passphrase', RotatePassphraseView.as_view(), name='betat-rotate-passphrase'),
     path('betat/vouch/<int:request_id>', VouchView.as_view(), name='betat-vouch'),
     path('betat/vouch-requests', PeerVouchQueueView.as_view(), name='betat-vouch-requests'),
+    path('betat/vouch-requests/open', OpenVouchRequestsView.as_view(), name='betat-vouch-requests-open'),
     path(
         'betat/vouch-requests/<int:request_id>/approve',
         ApproveFoundingRequestView.as_view(),

@@ -80,12 +80,18 @@
     </div>
     {% if existing_members %}
     <div class="bt-form-group">
-      <p class="bt-field-hint" style="margin-bottom:6px">Existing members you could ask to vouch for you:</p>
+      <p class="bt-field-hint" style="margin-bottom:6px">Tick any members you'd like to ask to vouch for you — they'll see your request highlighted when they next log in:</p>
       <ul class="bt-member-list">
         {% for member in existing_members %}
-        <li>{{ member.display_name|default:member.identity }}{% if member.display_name %} <span class="bt-body">({{ member.identity }})</span>{% endif %}</li>
+        <li>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0">
+            <input type="checkbox" name="requested_vouchers" value="{{ member.identity }}">
+            <span>{{ member.display_name|default:member.identity }}{% if member.display_name %} <span class="bt-body">({{ member.identity }})</span>{% endif %}</span>
+          </label>
+        </li>
         {% endfor %}
       </ul>
+      <p class="bt-field-hint">Optional — any enrolled member can vouch for you even if you don't ask them here.</p>
     </div>
     {% else %}
     <p class="bt-field-hint" style="margin-bottom:0.75rem">

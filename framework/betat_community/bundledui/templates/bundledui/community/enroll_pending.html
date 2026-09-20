@@ -54,14 +54,12 @@
   </div>
 
   <div class="bt-banner">
-    Share your request ID with a community member and ask them to vouch
-    for your enrollment:
+    The members you asked will see your request the next time they log in and
+    can vouch for you in one click from their <strong>Vouch requests</strong> page —
+    no link to copy or paste.
     <br><br>
-    <strong>Request ID: {{ request_id }}</strong>
-    <br><br>
-    A community member can vouch by visiting
-    <strong>/community/vouch/{{ request_id }}</strong> after logging in
-    with their own enrollment token.
+    <strong>Request ID: {{ request_id }}</strong> — mention this to any other
+    member you'd like to ask; they'll find your request on the same page after signing in.
     <br><br>
     {{ vouch_count }} of {{ threshold }} vouches received.
   </div>

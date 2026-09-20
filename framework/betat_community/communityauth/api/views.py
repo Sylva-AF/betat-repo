@@ -25,7 +25,12 @@ from ..floor import PROTOCOL_LIST
 from ..identity import Pending, Rejection
 from ..models import PeerVouchRequest, Provenancier
 from ..plugins import CryptoKeyAuth, InstitutionalAuth, PeerVouchAuth
-from .serializers import EnrollRequestSerializer, PeerVouchRequestSerializer, ProvenancierListSerializer
+from .serializers import (
+    EnrollRequestSerializer,
+    OpenVouchRequestSerializer,
+    PeerVouchRequestSerializer,
+    ProvenancierListSerializer,
+)
 
 
 class EnrollView(APIView):
@@ -321,6 +326,45 @@ class PeerVouchQueueView(APIView):
             'threshold': threshold,
             'requests': PeerVouchRequestSerializer(pending, many=True).data,
         })
+
+
+class OpenVouchRequestsView(APIView):
+    """GET /betat/vouch-requests/open (TODO 14 issues 3 & 4) — the
+    member-facing counterpart to the staff-only PeerVouchQueueView above.
+    Lists pending, non-founding peer-vouch requests an authenticated,
+    already-enrolled Provenancier may vouch for, excluding their own, and
+    flags the ones that named them (`asked_me`) and the ones they already
+    vouched for (`already_vouched`). Founding requests are excluded — those
+    are admin-approved, not peer-vouched, so a member can't act on them.
+
+    Discovery + notification only: it never records a vouch. Vouching still
+    happens through POST /betat/vouch/{request_id}, which enforces the
+    self- and double-vouch rules server-side — this view only helps a
+    member find who to vouch for and see who asked them."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            caller = Provenancier.objects.get(user=request.user)
+        except Provenancier.DoesNotExist:
+            return error_response(
+                'not_enrolled', 'Only an enrolled Provenancier can view vouch requests.',
+                status.HTTP_403_FORBIDDEN,
+            )
+
+        config = CommunityConfig.objects.first()
+        threshold = config.peer_vouch_threshold if config else None
+        pending = (
+            PeerVouchRequest.objects.filter(founding=False)
+            .exclude(identity=caller.identity)
+            .order_by('created_at')
+        )
+        serializer = OpenVouchRequestSerializer(
+            pending, many=True,
+            context={'caller_identity': caller.identity, 'threshold': threshold},
+        )
+        return Response({'threshold': threshold, 'requests': serializer.data})
 
 
 class ApproveFoundingRequestView(APIView):

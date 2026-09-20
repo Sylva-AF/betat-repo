@@ -45,6 +45,17 @@ class PeerVouchAuth(AuthMethod):
         display_name = applicant.get('display_name', '')
         founding = Provenancier.objects.count() < 2
         defaults = {'display_name': display_name, 'founding': founding}
+        # Targeted vouch requests (TODO 14): store only the asked identities
+        # that resolve to real enrolled members — one query, drops junk and
+        # any self-reference. Set via defaults so the idempotent same-session
+        # re-poll can't overwrite it, exactly like claim_passphrase_hash below.
+        requested = applicant.get('requested_vouchers') or []
+        if requested:
+            defaults['requested_vouchers'] = list(
+                Provenancier.objects.filter(identity__in=requested)
+                .exclude(identity=identity)
+                .values_list('identity', flat=True)
+            )
         # Optional claim passphrase (TODO 13 task 3): lets this applicant
         # retrieve their status/token from a different session later via
         # POST /betat/enroll/claim. Only set on first creation — get_or_create's

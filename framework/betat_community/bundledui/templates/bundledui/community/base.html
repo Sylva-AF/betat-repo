@@ -31,21 +31,32 @@
      title="Browse historical content discovered by the backfill agent (Phase 2)">
     Timeline
   </a>
+  {% if not request.session.provenancier_token %}
   <a href="{% url 'bundledui-enroll' %}"
      class="{% if request.resolver_match.url_name == 'bundledui-enroll' %}bt-active{% endif %}"
      title="Become a verified contributor (Provenancier) to submit content">
     Enroll
   </a>
+  {% endif %}
   <a href="{% url 'bundledui-submit' %}"
      class="{% if request.resolver_match.url_name == 'bundledui-submit' %}bt-active{% endif %}"
      title="Submit content for community review — requires enrollment">
     Submit Content
   </a>
+  {% if request.session.provenancier_token %}
+  <a href="{% url 'bundledui-vouch-requests' %}"
+     class="{% if request.resolver_match.url_name == 'bundledui-vouch-requests' %}bt-active{% endif %}"
+     title="Members asking to be vouched for — vouch for people you know are real">
+    Vouch requests
+  </a>
+  {% endif %}
+  {% if request.user.is_staff %}
   <a href="{% url 'bundledui-queue' %}"
-     class="{% if request.resolver_match.url_name == 'bundledui-queue' or request.resolver_match.url_name == 'bundledui-verifier-login' %}bt-active{% endif %}"
+     class="{% if request.resolver_match.url_name == 'bundledui-queue' %}bt-active{% endif %}"
      title="Verifier review queue — requires a staff account">
     Review queue
   </a>
+  {% endif %}
 
   {% if request.user.is_staff %}
   <div class="bt-nav-dropdown">

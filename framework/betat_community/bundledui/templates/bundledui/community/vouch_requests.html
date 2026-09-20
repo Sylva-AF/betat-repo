@@ -1,0 +1,81 @@
+{% extends "bundledui/community/base.html" %}
+{% block title %}Vouch requests{% endblock %}
+
+{% block content %}
+<div class="bt-page">
+
+  <p class="bt-label">Peer vouching</p>
+  <h1 class="bt-h1">Requests to vouch</h1>
+  <p class="bt-body" style="margin-bottom:1.5rem">
+    People asking the community to confirm they're real. Only vouch for someone
+    you personally know is a real human being — your vouch is recorded against
+    your own enrolled identity and cannot be undone.
+  </p>
+
+  {% if asked_requests %}
+  <div class="bt-banner bt-banner-neutral">
+    <strong>{{ asked_requests|length }} {{ asked_requests|length|pluralize:"person,people" }} asked you to vouch.</strong>
+    They picked you when they enrolled.
+  </div>
+  {% for r in asked_requests %}
+  <div class="bt-card">
+    <div class="bt-queue-item">
+      <div>
+        <span class="bt-badge bt-badge-pending">Asked you</span>
+        <div style="font-size:15px;color:var(--bt-ink)">{{ r.display_name|default:r.identity }}</div>
+        {% if r.display_name %}<div class="bt-body" style="font-size:13px">{{ r.identity }}</div>{% endif %}
+        <div class="bt-body" style="font-size:13px;margin-top:4px">
+          {{ r.vouch_count }} vouch{{ r.vouch_count|pluralize:"es" }} so far{% if r.vouches_needed %} · {{ r.vouches_needed }} more needed{% endif %}
+        </div>
+      </div>
+      <div class="bt-queue-actions">
+        {% if r.already_vouched %}
+        <span class="bt-body" style="display:flex;align-items:center;gap:6px"><span class="bt-dot bt-dot-done"></span>You vouched</span>
+        {% else %}
+        <form method="post" action="{% url 'bundledui-vouch' r.id %}">
+          {% csrf_token %}
+          <button type="submit" class="bt-btn-primary bt-btn-sm">Vouch</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  {% if other_requests %}
+  {% if asked_requests %}<h2 class="bt-h2" style="margin:1.5rem 0 0.75rem">Other open requests</h2>{% endif %}
+  {% for r in other_requests %}
+  <div class="bt-card">
+    <div class="bt-queue-item">
+      <div>
+        <div style="font-size:15px;color:var(--bt-ink)">{{ r.display_name|default:r.identity }}</div>
+        {% if r.display_name %}<div class="bt-body" style="font-size:13px">{{ r.identity }}</div>{% endif %}
+        <div class="bt-body" style="font-size:13px;margin-top:4px">
+          {{ r.vouch_count }} vouch{{ r.vouch_count|pluralize:"es" }} so far{% if r.vouches_needed %} · {{ r.vouches_needed }} more needed{% endif %}
+        </div>
+      </div>
+      <div class="bt-queue-actions">
+        {% if r.already_vouched %}
+        <span class="bt-body" style="display:flex;align-items:center;gap:6px"><span class="bt-dot bt-dot-done"></span>You vouched</span>
+        {% else %}
+        <form method="post" action="{% url 'bundledui-vouch' r.id %}">
+          {% csrf_token %}
+          <button type="submit" class="bt-btn-primary bt-btn-sm">Vouch</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  {% if not asked_requests and not other_requests %}
+  <div class="bt-empty">
+    <p class="bt-empty-title">No open requests</p>
+    <p class="bt-body">There's no one waiting to be vouched for right now.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -67,6 +67,13 @@ def _clear_peer_vouch_session(request):
 
 
 def enroll_view(request):
+    # Already-enrolled Provenanciers never re-enroll (TODO 14 issue 1) — the
+    # nav hides the Enroll CTA for them, and this guards direct navigation
+    # too, so a logged-in member can't re-open the form and re-request.
+    if request.session.get('provenancier_token'):
+        messages.info(request, "You're already enrolled — submit a contribution instead.")
+        return redirect('bundledui-submit')
+
     api = ApiClient(server_name=request.get_host())
     status, info = api.get('/betat/info')
     if status != 200:
@@ -96,6 +103,17 @@ def enroll_view(request):
         if form.is_valid():
             method = form.cleaned_data['method']
             applicant = form.applicant_payload()
+
+            # Targeted vouch requests (TODO 14 issue 4): the applicant may
+            # check specific existing members to ask. Kept out of EnrollForm
+            # (its choices would need runtime wiring) and injected here, same
+            # view-injection pattern as claim_passphrase below. The server
+            # filters these down to real enrolled identities in
+            # PeerVouchAuth.enroll(), so an arbitrary value is harmless.
+            if method == 'community_peer_vouching':
+                requested = request.POST.getlist('requested_vouchers')
+                if requested:
+                    applicant['requested_vouchers'] = requested
 
             # Passphrase-assisted cryptographic_signature (BLUEPRINT §03
             # Decision Log, 2026-09): only when no public_key/signature was
@@ -386,6 +404,38 @@ def vouch_view(request, request_id):
         return redirect('bundledui-records')
 
     return render(request, 'bundledui/community/vouch.html', {'request_id': request_id})
+
+
+def vouch_requests_view(request):
+    """GET /community/vouch-requests (TODO 14 issues 3 & 4) — an enrolled
+    Provenancier's view of pending peer-vouch requests they can act on,
+    replacing the old "applicant broadcasts a raw /community/vouch/{id}
+    link" flow. Thin ApiClient consumer of GET /betat/vouch-requests/open,
+    which resolves the caller server-side and flags asked_me/already_vouched;
+    the one-click Vouch button on each card posts to the existing
+    bundledui-vouch path. Requires the same session token submit_view
+    relies on — peer-vouch identities have no separate login."""
+    token = request.session.get('provenancier_token')
+    if not token:
+        messages.info(request, 'Enroll first — only an enrolled Provenancier can vouch.')
+        return redirect('bundledui-enroll')
+
+    status, data = ApiClient(token=token, server_name=request.get_host()).get(
+        '/betat/vouch-requests/open',
+    )
+    if status != 200:
+        messages.error(request, 'Could not load pending vouch requests.')
+        pending = []
+    else:
+        pending = data['requests']
+
+    # Requests that named this member render first, highlighted (TODO 14
+    # issue 4 — the seed's "notification": a member sees who asked them the
+    # next time they open this page; no email/push channel exists).
+    return render(request, 'bundledui/community/vouch_requests.html', {
+        'asked_requests': [r for r in pending if r['asked_me']],
+        'other_requests': [r for r in pending if not r['asked_me']],
+    })
 
 
 def verifier_logout_view(request):

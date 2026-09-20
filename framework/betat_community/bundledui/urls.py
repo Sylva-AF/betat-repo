@@ -31,6 +31,7 @@ urlpatterns = [
     path('claim', views.claim_enrollment_view, name='bundledui-claim'),
     path('rotate-passphrase', views.rotate_passphrase_view, name='bundledui-rotate-passphrase'),
     path('logout', views.provenancier_logout_view, name='bundledui-provenancier-logout'),
+    path('vouch-requests', views.vouch_requests_view, name='bundledui-vouch-requests'),
     path('vouch/<int:request_id>', views.vouch_view, name='bundledui-vouch'),
     path('submit', views.submit_view, name='bundledui-submit'),
     path('queue', views.queue_view, name='bundledui-queue'),

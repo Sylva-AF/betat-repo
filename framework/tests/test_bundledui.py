@@ -712,6 +712,159 @@ def test_record_detail_unverified_for_unknown_id(client):
     assert b'No provenance record found' in response.content
 
 
+# --- TODO 14: nav scoping + targeted vouch requests ----------------------
+
+def _enrolled_member_client(client, identity='did:key:z6MkMember'):
+    """Enrol a crypto member so the session carries a provenancier_token —
+    OpenVouchRequestsView/VouchView resolve the caller by user, regardless
+    of auth method, so a crypto member is a valid voucher."""
+    private_key, public_key = crypto.generate_keypair()
+    proof = crypto.sign(private_key, public_key)
+    client.post(reverse('bundledui-enroll'), {
+        'method': 'cryptographic_signature', 'identity': identity,
+        'display_name': '', 'public_key': public_key, 'signature': proof,
+    })
+    return identity
+
+
+# Issue 1 — Enroll CTA hidden / guarded once enrolled
+
+def test_nav_shows_enroll_when_anonymous(client):
+    _config()
+    response = client.get(reverse('bundledui-records'))
+    assert reverse('bundledui-enroll').encode() in response.content
+
+
+def test_nav_hides_enroll_when_logged_in(client):
+    _peer_vouch_config()
+    _enrolled_member_client(client)
+    response = client.get(reverse('bundledui-records'))
+    assert b'Log out' in response.content
+    assert reverse('bundledui-enroll').encode() not in response.content
+
+
+def test_enroll_redirects_to_submit_when_already_enrolled(client):
+    _peer_vouch_config()
+    _enrolled_member_client(client)
+    response = client.get(reverse('bundledui-enroll'))
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-submit')
+
+
+# Issue 2 — Review queue staff-only, verifier login relocated
+
+def test_nav_hides_review_queue_for_non_staff(client):
+    _config()
+    response = client.get(reverse('bundledui-records'))
+    assert b'Review queue' not in response.content
+
+
+def test_nav_shows_review_queue_for_staff(client):
+    _config()
+    _staff_client(client)
+    response = client.get(reverse('bundledui-records'))
+    assert b'Review queue' in response.content
+
+
+def test_provenancier_login_page_links_to_verifier_signin(client):
+    _config(auth_methods=['cryptographic_signature'])
+    response = client.get(reverse('bundledui-provenancier-login'))
+    assert reverse('bundledui-verifier-login').encode() in response.content
+    assert b'verifier' in response.content
+
+
+# Issues 3 & 4 — member-facing vouch requests + picker
+
+def test_vouch_requests_requires_enrollment(client):
+    _peer_vouch_config()
+    response = client.get(reverse('bundledui-vouch-requests'))
+    assert response.status_code == 302
+    assert response.url == reverse('bundledui-enroll')
+
+
+def test_nav_shows_vouch_requests_link_when_logged_in(client):
+    _peer_vouch_config()
+    _enrolled_member_client(client)
+    response = client.get(reverse('bundledui-records'))
+    assert reverse('bundledui-vouch-requests').encode() in response.content
+
+
+def test_vouch_requests_lists_open_and_flags_asked_me(client):
+    from betat_community.communityauth.models import PeerVouchRequest
+
+    _peer_vouch_config()
+    member = _enrolled_member_client(client)
+    asked = PeerVouchRequest.objects.create(
+        identity='alice', display_name='Alice', requested_vouchers=[member], founding=False,
+    )
+    PeerVouchRequest.objects.create(identity='bob', display_name='Bob', founding=False)
+
+    response = client.get(reverse('bundledui-vouch-requests'))
+    assert response.status_code == 200
+    assert b'Alice' in response.content
+    assert b'Bob' in response.content
+    assert b'Asked you' in response.content
+    # one-click Vouch button posts to the existing vouch endpoint
+    assert reverse('bundledui-vouch', args=[asked.id]).encode() in response.content
+
+
+def test_vouch_requests_excludes_own_and_founding(client):
+    from betat_community.communityauth.models import PeerVouchRequest
+
+    _peer_vouch_config()
+    member = _enrolled_member_client(client)
+    PeerVouchRequest.objects.create(identity=member, display_name='MyOwnPending', founding=False)
+    PeerVouchRequest.objects.create(identity='founder', display_name='FoundingApplicant', founding=True)
+    PeerVouchRequest.objects.create(identity='alice', display_name='Alice', founding=False)
+
+    response = client.get(reverse('bundledui-vouch-requests'))
+    assert response.status_code == 200
+    assert b'Alice' in response.content
+    assert b'MyOwnPending' not in response.content
+    assert b'FoundingApplicant' not in response.content
+
+
+def test_vouch_requests_marks_already_vouched(client):
+    from betat_community.communityauth.models import PeerVouchRequest
+
+    _peer_vouch_config()
+    member = _enrolled_member_client(client)
+    PeerVouchRequest.objects.create(
+        identity='alice', display_name='Alice', vouchers=[member], founding=False,
+    )
+
+    response = client.get(reverse('bundledui-vouch-requests'))
+    assert response.status_code == 200
+    assert b'You vouched' in response.content
+
+
+def test_enroll_page_member_list_has_vouch_checkboxes(client):
+    _peer_vouch_config()
+    persist_provenancier(
+        identity='alice@example.com', identity_type='peer_attested',
+        authentication_method='community_peer_vouching', display_name='Alice',
+        verification_material={},
+    )
+    response = client.get(reverse('bundledui-enroll'))
+    assert response.status_code == 200
+    assert b'name="requested_vouchers"' in response.content
+    assert b'value="alice@example.com"' in response.content
+
+
+def test_enroll_peer_vouch_stores_selected_requested_vouchers(client):
+    from betat_community.communityauth.models import PeerVouchRequest
+
+    _peer_vouch_config()
+    _seed_enrolled_vouchers()  # voucher-seed-0, voucher-seed-1 exist
+    response = client.post(reverse('bundledui-enroll'), {
+        'method': 'community_peer_vouching', 'identity': 'newcomer', 'display_name': 'Newcomer',
+        'requested_vouchers': ['voucher-seed-0', 'not-a-real-member'],
+    })
+    assert response.status_code == 302
+    req = PeerVouchRequest.objects.get(identity='newcomer')
+    assert req.requested_vouchers == ['voucher-seed-0']
+
+
 def test_record_detail_tampered_state(client):
     _config()
     tampered = ProvenanceRecord(

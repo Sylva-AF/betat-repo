@@ -766,3 +766,87 @@ still un-retested per the 2026-09-13 updates) and the production-guide dry
 run against real PostgreSQL (item 3 / the last two acceptance criteria —
 raw UPDATE/DELETE by the app role blocked at the DB-permission level). The
 PG16 setup above is reusable for the production-guide dry run.
+
+### Update 2026-09-15 (continued) — fresh-venv verify started, found+fixed a bug; PICK UP HERE next session
+
+Item 2 (fresh-venv wheel install re-verify) is **in progress, not done.**
+What happened this session, and exactly where to resume:
+
+**What got verified (browser, fresh venv, SQLite default install):** first
+provenancier enrolled by peer-vouch, was approved, submitted the first
+record — all good.
+
+**Bug found and fixed (the fresh-venv verify's whole point):** logging out
+and starting a *second* peer-vouch enrollment in the same browser stranded
+the user on the "Your enrollment has been completed... contact an
+administrator" dead-end instead of a fresh enroll form. Root cause: the
+`peer_vouch_*` session keys were cleared only on the poll-crosses-threshold
+201 path — not on logout, claim success, or the "completed elsewhere"
+terminal state — so a *finished* enrollment's stale `peer_vouch_request_id`
+hijacked the next `/community/enroll` visit. Fixed in
+`betat_community/bundledui/views.py`: new `_clear_peer_vouch_session()`
+helper called on all four terminal paths (the dead-end now self-heals on
+the next visit). Two regression tests added to `tests/test_bundledui.py`
+(`test_provenancier_logout_clears_peer_vouch_session`,
+`test_peer_vouch_promoted_elsewhere_clears_stale_request`). **Confirmed
+green: 195 passed on SQLite, 193 passed / 2 skipped on PostgreSQL 16.**
+
+**State of that fix (verify before assuming):** the code + tests are on
+disk and pass the suite. **Not yet confirmed:** (a) whether the fix was
+committed — check `git log`/`git status` first; the intended commit is its
+own bugfix commit, files `betat_community/bundledui/views.py` +
+`tests/test_bundledui.py` (both under `framework/`, so no repo-root CWD
+trap), message drafted in chat ("Fix: clear peer-vouch session keys on
+logout, claim, and terminal enroll states"). (b) whether the **browser
+retest** of the second-enrollee flow was actually re-run against a rebuilt
+wheel — the suite proves the logic, but the gate wants the running install.
+
+**The wheel in `framework/dist/` is STALE AGAIN.** It was rebuilt earlier
+this session (Sep 15 02:54, verified current: contains the TODO-13
+templates + migration, `twine check` passed) — but that was *before* the
+peer-vouch session fix above. So it must be rebuilt once more before any
+fresh-venv retest or publish.
+
+**Do this next session, in order:**
+
+```bash
+# 0. Confirm the bugfix is committed (if not, commit it first — see above)
+cd /workspace && git status && git log --oneline -3
+
+# 1. Rebuild the wheel WITH the session-key fix
+cd /workspace && rm -rf framework/dist && python -m build ./framework
+twine check framework/dist/*
+# sanity: confirm it's a single fresh wheel and still carries the TODO-13 UI
+ls -la framework/dist/
+python -m zipfile -l framework/dist/betat_community-0.1.0-py3-none-any.whl \
+  | grep -E 'admin_dashboard|claim|rotate_passphrase|betat.css'
+
+# 2. Reinstall into the fresh venv (deps unchanged → --no-deps is fine)
+source /tmp/betat-verify/bin/activate
+pip install --force-reinstall --no-deps framework/dist/betat_community-0.1.0-py3-none-any.whl
+cd /tmp/betat-verify-proj && betat start
+```
+
+**3. Browser re-verify — the checklist still owed** (all on the SQLite
+default install; the PostgreSQL story is already proven by this session's
+dual-DB gate, so no need to re-run Postgres for the UI verify):
+   - **The fix:** first provenancier enrolled+approved → log out → start a
+     second peer-vouch enrollment in the same window → must reach a **clean
+     enroll form**, not the "completed" dead-end.
+   - **Claim page** (`/community/claim`): a peer-vouch applicant who set a
+     claim passphrase at enroll time retrieves their token from a different
+     session — pending status while unpromoted, logs in once promoted.
+   - **Passphrase rotation** (`/community/rotate-passphrase`): a
+     cryptographic_signature/passphrase identity changes passphrase by
+     proving the current one; old token stops working, new one logs in.
+   - **Adaptive login form** (`/community/login`): passphrase field
+     shows/hides by configured `auth_methods`; links to claim/rotate as
+     appropriate. (Unit-covered already by the 2026-09-12 tests; this is
+     the visual confirmation.)
+
+**4. Only once 3 is clean:** fresh-venv verify (item 2) is done — flip its
+checkboxes. Then item 3 (production-guide dry run against real PostgreSQL,
+reuse the PG16-in-`/tmp` setup from the previous update) is the last thing
+before publish. **Do NOT `twine upload` until items 2 AND 3 are both
+clean** — publish is a one-way door and the wheel must be the
+post-session-fix rebuild from step 1, not any earlier artifact.

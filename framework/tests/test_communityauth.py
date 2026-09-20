@@ -314,6 +314,81 @@ def test_approve_founding_request_endpoint_requires_staff():
     assert not Provenancier.objects.filter(identity='first-member').exists()
 
 
+# --- requested_vouchers + GET /betat/vouch-requests/open (TODO 14) --------
+
+def _provenancier_client(identity='voucher-one'):
+    """A token-authenticated APIClient acting as an already-enrolled
+    Provenancier — the caller shape OpenVouchRequestsView/VouchView expect."""
+    voucher = _enrolled_voucher(identity)
+    token = Token.objects.create(user=voucher.user)
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+    return client, voucher
+
+
+def test_peer_vouch_enroll_stores_only_real_members_in_requested_vouchers():
+    """The applicant-supplied ask-list is filtered to real enrolled
+    identities (and never the applicant themselves) — an arbitrary string
+    can't land in requested_vouchers."""
+    config = _config(peer_vouch_threshold=2)
+    _enrolled_voucher('voucher-one')
+    _enrolled_voucher('voucher-two')
+    plugin = PeerVouchAuth(config)
+
+    plugin.enroll({
+        'identity': 'newcomer', 'display_name': 'Newcomer',
+        'requested_vouchers': ['voucher-one', 'ghost@nowhere', 'newcomer'],
+    })
+
+    req = PeerVouchRequest.objects.get(identity='newcomer')
+    assert req.requested_vouchers == ['voucher-one']
+
+
+def test_open_vouch_requests_forbids_non_provenancier_token():
+    _config(peer_vouch_threshold=2)
+    user = get_user_model().objects.create_user(username='plain-user')
+    token = Token.objects.create(user=user)
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+
+    response = client.get(reverse('betat-vouch-requests-open'))
+    assert response.status_code == 403
+    assert response.data['error']['code'] == 'not_enrolled'
+
+
+def test_open_vouch_requests_requires_authentication():
+    _config(peer_vouch_threshold=2)
+    response = APIClient().get(reverse('betat-vouch-requests-open'))
+    assert response.status_code in (401, 403)
+
+
+def test_open_vouch_requests_excludes_own_and_founding_and_flags_correctly():
+    config = _config(peer_vouch_threshold=2)
+    client, _voucher = _provenancier_client('voucher-one')
+    _enrolled_voucher('voucher-two')  # so alice/bob below are non-founding
+    plugin = PeerVouchAuth(config)
+
+    plugin.enroll({'identity': 'alice', 'display_name': 'Alice', 'requested_vouchers': ['voucher-one']})
+    bob = plugin.enroll({'identity': 'bob', 'display_name': 'Bob'})
+    plugin.add_vouch(bob.request_id, 'voucher-one')  # one vouch, not yet at threshold 2
+    PeerVouchRequest.objects.create(identity='founder', display_name='Founder', founding=True)
+    PeerVouchRequest.objects.create(identity='voucher-one', display_name='Self', founding=False)
+
+    response = client.get(reverse('betat-vouch-requests-open'))
+
+    assert response.status_code == 200
+    assert response.data['threshold'] == 2
+    rows = {r['identity']: r for r in response.data['requests']}
+    assert set(rows) == {'alice', 'bob'}  # founding + own request excluded
+    assert rows['alice']['asked_me'] is True
+    assert rows['alice']['already_vouched'] is False
+    assert rows['alice']['vouches_needed'] == 2
+    assert rows['bob']['asked_me'] is False
+    assert rows['bob']['already_vouched'] is True
+    assert rows['bob']['vouch_count'] == 1
+    assert rows['bob']['vouches_needed'] == 1
+
+
 # --- /betat/enroll/claim (TODO 13 task 3, self-service claim) ------------
 
 def test_claim_endpoint_requires_identity_and_passphrase():

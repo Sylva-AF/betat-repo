@@ -65,6 +65,15 @@ class PeerVouchRequest(models.Model):
     identity = models.CharField(max_length=500, unique=True)
     display_name = models.CharField(max_length=200, blank=True, default='')
     vouchers = models.JSONField(default=list, blank=True)
+    requested_vouchers = models.JSONField(
+        default=list, blank=True,
+        help_text=(
+            'TODO 14: identity strings of existing members the applicant asked to vouch, '
+            'set once at enroll time and filtered to real enrolled identities. Purely a '
+            'per-member "you were asked" flag surfaced by GET /betat/vouch-requests/open — '
+            'not a vouch itself (that still comes from POST /betat/vouch/{id}).'
+        ),
+    )
     founding = models.BooleanField(
         default=False,
         help_text='True for the first two members — admin approval sufficient, no peer vouches required.',
