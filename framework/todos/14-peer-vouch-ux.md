@@ -1,7 +1,7 @@
 # TODO 14 — Peer-vouch UX: click-to-vouch, targeted vouch requests, staff-scoped nav
 
-> Status: migration applied + full suite green (132 passed, confirmed by developer) — wheel build,
-> test install, and manual UI verify pending (developer-run). Blueprint: no dedicated section —
+> Status: done — migration applied, full suite green (132 passed), wheel build + install + manual
+> UI verify signed off by the developer. Blueprint: no dedicated section —
 > landed as Decision Log entries under
 > §03/§07 (2026-09-20), per this repo's "spec → blueprint → TODOs → code" authority rule.
 > Spec reference: COMMUNITY_FRAMEWORK.md → "Consumption Model, Layer 2"; "Authentication (pluggable, floored)".

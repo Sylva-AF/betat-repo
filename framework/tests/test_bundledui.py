@@ -865,6 +865,25 @@ def test_enroll_peer_vouch_stores_selected_requested_vouchers(client):
     assert req.requested_vouchers == ['voucher-seed-0']
 
 
+# --- TODO 15: absolute content location at submit ------------------------
+
+def test_submit_form_rejects_relative_location(client):
+    _config(auth_methods=['cryptographic_signature'])
+    private_key, public_key = crypto.generate_keypair()
+    proof = crypto.sign(private_key, public_key)
+    client.post(reverse('bundledui-enroll'), {
+        'method': 'cryptographic_signature', 'identity': 'did:key:z6MkSubmit',
+        'display_name': '', 'public_key': public_key, 'signature': proof,
+    })
+
+    response = client.post(reverse('bundledui-submit'), {
+        'title': 'X', 'location': 'bantu.org', 'content_hash': 'sha256:abc',
+        'language': 'en', 'declaration_accepted': True,
+    })
+    assert response.status_code == 200  # form re-renders, no redirect
+    assert not Submission.objects.exists()
+
+
 def test_record_detail_tampered_state(client):
     _config()
     tampered = ProvenanceRecord(

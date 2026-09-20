@@ -4,12 +4,17 @@ workflow/models.py.
 """
 from rest_framework import serializers
 
+from betat_community.common.validators import validate_content_location
+
 from ..models import Submission
 
 
 class SubmitRequestSerializer(serializers.Serializer):
     title = serializers.CharField(required=False, allow_blank=True, default='')
-    location = serializers.CharField()
+    # Must be an absolute URI straight to the item — a bare/relative value
+    # otherwise renders as a link relative to the community's own host
+    # (BLUEPRINT §04 Decision Log, 2026-09-20).
+    location = serializers.CharField(validators=[validate_content_location])
     content_hash = serializers.CharField()
     language = serializers.CharField(required=False, default='en')
     declaration_accepted = serializers.BooleanField()

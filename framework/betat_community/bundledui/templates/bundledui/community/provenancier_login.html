@@ -55,9 +55,10 @@
   {% endif %}
 
   <hr class="bt-divider">
-  <p style="font-size:13px;color:var(--bt-muted)">
-    Are you a community verifier? <a href="{% url 'bundledui-verifier-login' %}">Sign in to the review queue &rarr;</a>
-  </p>
+  <p class="bt-body" style="color:var(--bt-ink);margin-bottom:0.6rem">Are you a community verifier?</p>
+  <a href="{% url 'bundledui-verifier-login' %}" class="bt-btn-secondary bt-btn-sm">
+    Sign in to the review queue &rarr;
+  </a>
 
 </div>
 {% endblock %}

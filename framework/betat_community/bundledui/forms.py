@@ -6,6 +6,8 @@ the ones matching their chosen method.
 """
 from django import forms
 
+from betat_community.common.validators import validate_content_location
+
 
 class EnrollForm(forms.Form):
     method = forms.ChoiceField(label='Authentication method')
@@ -84,6 +86,7 @@ class SubmitForm(forms.Form):
     )
     location = forms.CharField(
         label='Content location (URI/DOI/IPFS)',
+        validators=[validate_content_location],
         widget=forms.TextInput(attrs={'placeholder': 'https://example.com/... or ipfs://... or doi:...'}),
     )
     content_hash = forms.CharField(

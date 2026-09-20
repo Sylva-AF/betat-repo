@@ -105,6 +105,45 @@ def test_submit_success_creates_pending_submission():
     assert submission.location == 'https://archive.example/obs-4471'
 
 
+# --- submit: absolute content location (TODO 15) -------------------------
+
+def test_submit_rejects_relative_location():
+    _config()
+    client, _p = _provenancier_client()
+    response = client.post(
+        reverse('betat-submit'), _valid_submit_payload(location='bantu.org'), format='json',
+    )
+    assert response.status_code == 400
+    assert response.data['error']['code'] == 'invalid_request'
+    assert 'absolute' in response.data['error']['message']
+    assert not Submission.objects.exists()
+
+
+def test_submit_rejects_unsafe_scheme_location():
+    _config()
+    client, _p = _provenancier_client()
+    response = client.post(
+        reverse('betat-submit'), _valid_submit_payload(location='javascript:alert(1)'), format='json',
+    )
+    assert response.status_code == 400
+    assert not Submission.objects.exists()
+
+
+@pytest.mark.parametrize('location', [
+    'https://archive.example/obs-4471',
+    'ipfs://bafybeigdyrexamplecid',
+    'doi:10.1234/abcd.5678',
+])
+def test_submit_accepts_absolute_locations(location):
+    _config()
+    client, _p = _provenancier_client()
+    response = client.post(
+        reverse('betat-submit'), _valid_submit_payload(location=location), format='json',
+    )
+    assert response.status_code == 201
+    assert Submission.objects.get().location == location
+
+
 # --- queue ------------------------------------------------------------------
 
 def test_queue_requires_verifier():
