@@ -20,7 +20,7 @@
 | 11 | Documentation site | [todos/11-docs-site.md](todos/11-docs-site.md) | Documentation Standard | in progress |
 | 12 | Packaging & production guide | [todos/12-packaging.md](todos/12-packaging.md) | Design Goal 4; storage engines | in progress |
 | 13 | Operator & Provenancier UX — admin dashboard, adaptive access | [todos/13-operator-provenancier-ux.md](todos/13-operator-provenancier-ux.md) | Consumption Model, Layer 2; Authentication (pluggable, floored) | done |
-| 14 | Peer-vouch UX — click-to-vouch, targeted vouch requests, staff-scoped nav | [todos/14-peer-vouch-ux.md](todos/14-peer-vouch-ux.md) | Consumption Model, Layer 2; Authentication (pluggable, floored) | done |
+| 14 | Peer-vouch UX — click-to-vouch, targeted vouch requests, staff-scoped nav | [todos/14-peer-vouch-ux.md](todos/14-peer-vouch-ux.md) | Consumption Model, Layer 2; Authentication (pluggable, floored) | done (+ 2026-09-20 addendum: staff-aware nav account CTA) |
 | 15 | Absolute content-URL enforcement + login-page readability | [todos/15-submit-url-and-login-readability.md](todos/15-submit-url-and-login-readability.md) | PROVENANCE_SPEC content location; Consumption Model, Layer 2 | done |
 
 Build order: 01 → 02 → 05 → 03 → 04 → 06 → 10 (first acceptance pass) → 07 → 08 → 09 → 11 → 12.

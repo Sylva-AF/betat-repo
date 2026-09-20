@@ -65,6 +65,7 @@
     <div class="bt-nav-dropdown-menu">
       <a href="{% url 'bundledui-admin' %}" title="Approve founding-member enrollment requests">Approve enrollments</a>
       <a href="{% url 'admin:password_change' %}" title="Change your verifier account password">Change password</a>
+      <a href="{% url 'bundledui-verifier-logout' %}" title="Sign out of your verifier session">Log out</a>
     </div>
   </div>
   {% endif %}
@@ -74,7 +75,7 @@
      title="Log out of your current enrollment session">
     Log out{% if request.session.provenancier_identity %} ({{ request.session.provenancier_identity }}){% endif %}
   </a>
-  {% else %}
+  {% elif not request.user.is_staff %}
   <a href="{% url 'bundledui-provenancier-login' %}" class="bt-nav-cta"
      title="Log back in with your existing enrollment">
     Log in

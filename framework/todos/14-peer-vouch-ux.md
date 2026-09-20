@@ -65,6 +65,15 @@ Four bundled-UI gaps found in manual use of the shipped peer-vouch flow:
 - Any change to the underlying vouch/threshold mechanics (§03 logic) — presentation + a discovery
   endpoint only.
 
+## Addendum — 2026-09-20, staff-aware nav account CTA
+
+Follow-up found reviewing the operator flow after this TODO's nav changes shipped: the nav's
+account CTA keyed only on the Provenancier session, so a logged-in verifier still saw a useless
+Provenancier "Log in" and had no nav logout (only the Review-queue page had one). Fixed in
+`base.html`: "Log in" is now hidden for `request.user.is_staff`, and the Admin dropdown gained a
+"Log out" → `bundledui-verifier-logout` item. Two tests added to `test_bundledui.py`. Full detail
+in BLUEPRINT §07's 2026-09-20 Decision Log entry.
+
 ## Verification (developer-run — sandbox blocks Bash here)
 
 1. `python manage.py makemigrations communityauth && python manage.py migrate`

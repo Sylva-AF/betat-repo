@@ -884,6 +884,24 @@ def test_submit_form_rejects_relative_location(client):
     assert not Submission.objects.exists()
 
 
+# --- staff nav CTA: no stray Provenancier "Log in"; Admin-dropdown logout -
+
+def test_nav_hides_provenancier_login_cta_for_logged_in_staff(client):
+    _config()
+    _staff_client(client)
+    response = client.get(reverse('bundledui-records'))
+    # A logged-in verifier is not a Provenancier — the account CTA must not
+    # offer a Provenancier "Log in"; they log out via the Admin dropdown.
+    assert reverse('bundledui-provenancier-login').encode() not in response.content
+
+
+def test_admin_dropdown_has_verifier_logout(client):
+    _config()
+    _staff_client(client)
+    response = client.get(reverse('bundledui-records'))
+    assert reverse('bundledui-verifier-logout').encode() in response.content
+
+
 def test_record_detail_tampered_state(client):
     _config()
     tampered = ProvenanceRecord(
