@@ -1,5 +1,18 @@
 # Betat
 
+[![PyPI version](https://badge.fury.io/py/betat-community.svg)](https://pypi.org/project/betat-community/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+## Install
+
+```bash
+pip install betat-community
+```
+
+Full documentation and community setup guide: [betat.org](https://betat.org)
+
+---
+
 ## Terminology
 
 Two roles exist in Betat. They are distinct and must never be confused:
